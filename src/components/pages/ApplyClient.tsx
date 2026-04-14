@@ -1,12 +1,15 @@
-import { motion } from "motion/react";
+"use client";
+
+import { motion } from "framer-motion";
+import Link from "next/link";
 import { useState } from "react";
-import { Link, useSearchParams } from "react-router";
 import { Upload, CheckCircle, ArrowLeft, Send } from "lucide-react";
 
-export default function Apply() {
-  const [searchParams] = useSearchParams();
-  const roleParam = searchParams.get("role") || "";
+type ApplyClientProps = {
+  initialRole?: string;
+};
 
+export default function ApplyClient({ initialRole = "" }: ApplyClientProps) {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -14,15 +17,16 @@ export default function Apply() {
     lastName: "",
     email: "",
     phone: "",
-    role: roleParam,
+    role: initialRole,
     linkedin: "",
     portfolio: "",
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormSubmitted(true);
+
     setTimeout(() => {
       setFormSubmitted(false);
       setFormData({
@@ -30,7 +34,7 @@ export default function Apply() {
         lastName: "",
         email: "",
         phone: "",
-        role: "",
+        role: initialRole,
         linkedin: "",
         portfolio: "",
         message: "",
@@ -39,15 +43,21 @@ export default function Apply() {
     }, 4000);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
+    if (e.target.files?.length) {
       setFileName(e.target.files[0].name);
     }
   };
@@ -55,19 +65,30 @@ export default function Apply() {
   return (
     <div className="overflow-x-hidden min-h-screen">
       <div className="max-w-3xl mx-auto px-6 lg:px-8 py-24">
-        <Link to="/careers" className="inline-flex items-center text-gray-400 hover:text-white mb-8 transition-colors z-10 relative">
+        <Link
+          href="/careers"
+          className="inline-flex items-center text-gray-400 hover:text-white mb-8 transition-colors z-10 relative"
+        >
           <ArrowLeft size={20} className="mr-2" />
           Back to Careers
         </Link>
+
         <motion.div
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-           className="relative z-10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative z-10"
         >
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Apply for <span className="bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] bg-clip-text text-transparent">Position</span>
+            Apply for{" "}
+            <span className="bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] bg-clip-text text-transparent">
+              Position
+            </span>
           </h1>
-          <p className="text-gray-400 text-lg mb-12">Submit your application to join the Navitecs team. Fill out the fields below and we'll reach out to you shortly.</p>
+
+          <p className="text-gray-400 text-lg mb-12">
+            Submit your application to join the NAVITECS team. Fill out the
+            fields below and we&apos;ll reach out to you shortly.
+          </p>
 
           {formSubmitted ? (
             <motion.div
@@ -78,16 +99,22 @@ export default function Apply() {
               <div className="inline-block p-4 bg-[#00FF9C]/20 rounded-full mb-4">
                 <CheckCircle className="text-[#00FF9C]" size={48} />
               </div>
-              <h3 className="text-2xl font-bold mb-2">Application Submitted!</h3>
+              <h3 className="text-2xl font-bold mb-2">
+                Application Submitted!
+              </h3>
               <p className="text-gray-400">
-                Thank you for applying. We are reviewing your application and will get in touch soon.
+                Thank you for applying. We are reviewing your application and
+                will get in touch soon.
               </p>
             </motion.div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="firstName"
+                    className="block text-sm font-medium mb-2"
+                  >
                     First Name *
                   </label>
                   <input
@@ -101,8 +128,12 @@ export default function Apply() {
                     placeholder="John"
                   />
                 </div>
+
                 <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="lastName"
+                    className="block text-sm font-medium mb-2"
+                  >
                     Last Name *
                   </label>
                   <input
@@ -120,7 +151,10 @@ export default function Apply() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium mb-2"
+                  >
                     Email Address *
                   </label>
                   <input
@@ -134,8 +168,12 @@ export default function Apply() {
                     placeholder="john@example.com"
                   />
                 </div>
+
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium mb-2"
+                  >
                     Phone Number
                   </label>
                   <input
@@ -151,7 +189,10 @@ export default function Apply() {
               </div>
 
               <div>
-                <label htmlFor="role" className="block text-sm font-medium mb-2">
+                <label
+                  htmlFor="role"
+                  className="block text-sm font-medium mb-2"
+                >
                   Position Applied For *
                 </label>
                 <input
@@ -168,7 +209,10 @@ export default function Apply() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="linkedin" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="linkedin"
+                    className="block text-sm font-medium mb-2"
+                  >
                     LinkedIn Profile
                   </label>
                   <input
@@ -181,8 +225,12 @@ export default function Apply() {
                     placeholder="https://linkedin.com/in/..."
                   />
                 </div>
+
                 <div>
-                  <label htmlFor="portfolio" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="portfolio"
+                    className="block text-sm font-medium mb-2"
+                  >
                     Portfolio / Website
                   </label>
                   <input
@@ -198,7 +246,9 @@ export default function Apply() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Resume / CV *</label>
+                <label htmlFor="cv" className="block text-sm font-medium mb-2">
+                  Resume / CV *
+                </label>
                 <div className="relative">
                   <input
                     type="file"
@@ -209,20 +259,25 @@ export default function Apply() {
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     accept=".pdf,.doc,.docx"
                   />
-                  <div className="w-full px-4 py-8 bg-[#0a0a0a] border border-dashed border-white/20 rounded-lg flex flex-col items-center justify-center pointer-events-none transition-colors group-hover:border-[#00AEEF]">
+                  <div className="w-full px-4 py-8 bg-[#0a0a0a] border border-dashed border-white/20 rounded-lg flex flex-col items-center justify-center pointer-events-none">
                     <Upload className="text-[#00AEEF] mb-2" size={24} />
                     <p className="text-white mb-1 font-medium">
                       {fileName ? fileName : "Upload your resume"}
                     </p>
                     <p className="text-gray-400 text-sm">
-                      {fileName ? "Click to change file" : "PDF, DOCX up to 10MB"}
+                      {fileName
+                        ? "Click to change file"
+                        : "PDF, DOCX up to 10MB"}
                     </p>
                   </div>
                 </div>
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-medium mb-2">
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-medium mb-2"
+                >
                   Cover Letter / Additional Notes
                 </label>
                 <textarea

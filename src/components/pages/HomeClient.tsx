@@ -1,38 +1,43 @@
-import { motion } from "motion/react";
-import { Link } from "react-router";
-import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import ToolsSection from "../components/ToolsSection";
+"use client";
+
+import { motion } from "framer-motion";
+import Link from "next/link";
 import {
   ArrowRight,
   Building2,
   Layers,
   GitMerge,
-  FileText,
   CheckCircle,
   Ruler,
 } from "lucide-react";
+import { ImageWithFallback } from "../figma/ImageWithFallback";
+import ToolsSection from "../ToolsSection";
 
-export default function Home() {
+export default function HomeClient() {
   const services = [
     {
       icon: Layers,
       title: "BIM Consulting",
-      description: "Coordination, clash detection, and workflow optimization across all disciplines",
+      description:
+        "Coordination, clash detection, and workflow optimization across all disciplines",
     },
     {
       icon: Building2,
       title: "Project Development",
-      description: "Full lifecycle support with technical documentation and construction-ready models",
+      description:
+        "Full lifecycle support with technical documentation and construction-ready models",
     },
     {
       icon: Ruler,
       title: "Architectural & Structural Design",
-      description: "Functional, compliant design for residential and commercial buildings",
+      description:
+        "Functional, compliant design for residential and commercial buildings",
     },
     {
       icon: GitMerge,
       title: "MEP Design",
-      description: "Integrated mechanical, electrical, and plumbing system planning",
+      description:
+        "Integrated mechanical, electrical, and plumbing system planning",
     },
   ];
 
@@ -69,19 +74,18 @@ export default function Home() {
     {
       icon: CheckCircle,
       title: "Better Collaboration",
-      description: "Seamless coordination between architects, engineers, and contractors",
+      description:
+        "Seamless coordination between architects, engineers, and contractors",
     },
   ];
 
   return (
     <div className="overflow-x-hidden">
-      {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background Effects */}
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-96 h-96 bg-[#00AEEF]/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#00FF9C]/10 rounded-full blur-3xl"></div>
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:64px_64px]"></div>
+          <div className="absolute top-20 left-10 w-96 h-96 bg-[#00AEEF]/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#00FF9C]/10 rounded-full blur-3xl" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:64px_64px]" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-6 lg:px-8 py-32">
@@ -100,29 +104,35 @@ export default function Home() {
               </h1>
 
               <p className="text-xl text-gray-400 mb-8 max-w-xl">
-                NAVITECS delivers advanced BIM consulting and engineering solutions, ensuring seamless coordination across all stages of building development.
+                NAVITECS delivers advanced BIM consulting and engineering
+                solutions, ensuring seamless coordination across all stages of
+                building development.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 mb-12">
                 <Link
-                  to="/services"
+                  href="/services"
                   className="group relative px-8 py-4 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-lg overflow-hidden transition-all hover:scale-105"
                 >
                   <span className="relative z-10 flex items-center justify-center">
                     Our Services
-                    <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={20} />
+                    <ArrowRight
+                      className="ml-2 group-hover:translate-x-1 transition-transform"
+                      size={20}
+                    />
                   </span>
                 </Link>
 
-                <Link
-                  to="/contact"
-                  className="px-8 py-4 bg-white/5 border border-white/10 text-white font-semibold rounded-lg hover:bg-white/10 transition-all"
-                >
-                  Start a Project
-                </Link>
+                <div className="relative inline-flex bg-black border border-white/20 hover:bg-black hover:border-white/30 rounded-lg shadow-lg">
+                  <Link
+                    href="/contact"
+                    className="relative z-10 inline-flex items-center px-8 py-4 text-white font-semibold rounded-lg  transition-all"
+                  >
+                    <span>Start a Project</span>
+                  </Link>
+                </div>
               </div>
 
-              {/* Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {stats.map((stat, index) => (
                   <motion.div
@@ -134,7 +144,9 @@ export default function Home() {
                     <div className="text-3xl font-bold bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] bg-clip-text text-transparent">
                       {stat.value}
                     </div>
-                    <div className="text-sm text-gray-400 mt-1">{stat.label}</div>
+                    <div className="text-sm text-gray-400 mt-1">
+                      {stat.label}
+                    </div>
                   </motion.div>
                 ))}
               </div>
@@ -158,7 +170,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* What is BIM */}
       <section className="py-24 bg-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div
@@ -174,7 +185,10 @@ export default function Home() {
               </span>
             </h2>
             <p className="text-gray-400 text-lg max-w-3xl mx-auto">
-              Building Information Modeling (BIM) is a digital representation of physical and functional characteristics of a facility. It enables multidisciplinary collaboration throughout a building's lifecycle—from initial design to construction and operation.
+              Building Information Modeling (BIM) is a digital representation of
+              physical and functional characteristics of a facility. It enables
+              multidisciplinary collaboration throughout a building&apos;s
+              lifecycle—from initial design to construction and operation.
             </p>
           </motion.div>
 
@@ -186,7 +200,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-black border border-white/10 rounded-2xl p-6 hover:border-[#00AEEF]/50 transition-all"
+                className="relative bg-black border border-white/15 rounded-2xl p-6 hover:bg-black hover:border-white/30 transition-all shadow-lg"
               >
                 <div className="mb-4">
                   <item.icon className="text-[#00FF9C]" size={32} />
@@ -199,7 +213,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Core Services */}
       <section className="py-24">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div
@@ -215,7 +228,8 @@ export default function Home() {
               </span>
             </h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Comprehensive BIM and engineering solutions for your building projects
+              Comprehensive BIM and engineering solutions for your building
+              projects
             </p>
           </motion.div>
 
@@ -227,14 +241,16 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="group relative bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all duration-300"
+                className="group relative bg-black border border-white/15 rounded-2xl p-8 hover:bg-black hover:border-white/30 transition-all duration-300 shadow-lg"
               >
                 <div className="flex items-start space-x-4">
                   <div className="p-3 bg-gradient-to-br from-[#00AEEF]/20 to-[#00FF9C]/20 rounded-xl group-hover:scale-110 transition-transform flex-shrink-0">
                     <service.icon className="text-white" size={28} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">{service.title}</h3>
+                    <h3 className="text-xl font-semibold mb-2">
+                      {service.title}
+                    </h3>
                     <p className="text-gray-400">{service.description}</p>
                   </div>
                 </div>
@@ -244,7 +260,7 @@ export default function Home() {
 
           <div className="text-center mt-12">
             <Link
-              to="/services"
+              href="/services"
               className="inline-flex items-center text-[#00AEEF] hover:text-[#00FF9C] transition-colors font-medium"
             >
               View All Services
@@ -254,7 +270,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Industries Served */}
       <section className="py-24 bg-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div
@@ -279,7 +294,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-black border border-white/10 rounded-xl p-6 hover:border-[#00AEEF]/50 transition-all text-center"
+                className="relative bg-black border border-white/15 rounded-xl p-6 hover:bg-black hover:border-white/30 transition-all text-center shadow-lg"
               >
                 <h3 className="font-semibold text-lg">{industry}</h3>
               </motion.div>
@@ -288,13 +303,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Tools Section */}
       <ToolsSection />
 
-      {/* CTA Section */}
       <section className="py-24 relative overflow-hidden bg-white/5">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:64px_64px]"></div>
-
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:64px_64px]" />
         <div className="relative max-w-4xl mx-auto px-6 lg:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -308,15 +320,19 @@ export default function Home() {
               </span>
             </h2>
             <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
-              Let's discuss how our BIM and engineering expertise can bring precision and efficiency to your building development.
+              Let&apos;s discuss how our BIM and engineering expertise can bring
+              precision and efficiency to your building development.
             </p>
             <Link
-              to="/contact"
+              href="/contact"
               className="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-lg overflow-hidden transition-all hover:scale-105"
             >
               <span className="relative z-10 flex items-center">
                 Contact Us
-                <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={20} />
+                <ArrowRight
+                  className="ml-2 group-hover:translate-x-1 transition-transform"
+                  size={20}
+                />
               </span>
             </Link>
           </motion.div>

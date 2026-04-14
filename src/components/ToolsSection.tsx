@@ -1,4 +1,6 @@
-import { motion } from "motion/react";
+"use client";
+
+import { motion } from "framer-motion";
 import { Box, Layers, Settings, Compass, Database, Cloud } from "lucide-react";
 
 export default function ToolsSection() {
@@ -51,7 +53,8 @@ export default function ToolsSection() {
             </span>
           </h2>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Industry-leading BIM and engineering software for precision and efficiency
+            Industry-leading BIM and engineering software for precision and
+            efficiency
           </p>
         </motion.div>
 
@@ -63,7 +66,7 @@ export default function ToolsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-[#00AEEF]/50 hover:bg-white/10 transition-all group"
+              className="relative bg-black border border-white/15 rounded-2xl p-6 hover:bg-black hover:border-white/30 transition-all group shadow-lg"
             >
               <div className="flex items-center space-x-4">
                 <div className="p-3 bg-gradient-to-br from-[#00AEEF]/20 to-[#00FF9C]/20 rounded-xl group-hover:scale-110 transition-transform">
