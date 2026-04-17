@@ -52,7 +52,13 @@ export default function Navigation() {
                 className="relative px-2 lg:px-4 py-2 text-sm lg:text-lg font-medium transition-colors group"
               >
                 <span
-                  className={`relative z-10 ${isActive(link.path) ? "text-white" : "text-gray-400 group-hover:text-white"}`}
+                  className={`relative z-10 ${
+                    isActive(link.path)
+                      ? "text-white"
+                      : link.name === "Careers"
+                        ? "nav-careers-shimmer"
+                        : "text-gray-400 group-hover:text-white"
+                  }`}
                 >
                   {link.name}
                 </span>
@@ -72,7 +78,7 @@ export default function Navigation() {
               href="/contact"
               className="relative px-4 lg:px-6 py-2.5 text-sm lg:text-base bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-lg overflow-hidden group"
             >
-              <span className="relative z-10">Get Started</span>
+              <span className="relative z-10">Get in Touch</span>
               <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
             </Link>
           </div>
@@ -117,7 +123,7 @@ export default function Navigation() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="block w-full px-4 py-3 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-lg text-center"
               >
-                Get Started
+                Get in Touch
               </Link>
             </div>
           </motion.div>

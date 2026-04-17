@@ -209,4 +209,44 @@
     background-color: rgba(0, 174, 239, 0.3);
     color: white;
   }
+
+  @keyframes nav-careers-shimmer {
+    0% {
+      background-position-x: 0%;
+      filter: drop-shadow(0 0 0px transparent);
+    }
+    50% {
+      filter: drop-shadow(0 0 8px #00AEEF) drop-shadow(0 0 14px rgba(0, 255, 156, 0.6));
+    }
+    100% {
+      background-position-x: 100%;
+      filter: drop-shadow(0 0 0px transparent);
+    }
+  }
+
+  .nav-careers-shimmer {
+    background: linear-gradient(
+      90deg,
+      rgb(156 163 175) 0%,
+      rgb(156 163 175) 18%,
+      #00AEEF 36%,
+      #00FF9C 50%,
+      #00AEEF 64%,
+      rgb(156 163 175) 82%,
+      rgb(156 163 175) 100%
+    );
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: nav-careers-shimmer 1.8s ease-in-out infinite alternate;
+    animation-delay: 1.5s;
+  }
+
+  .group:hover .nav-careers-shimmer {
+    background: none;
+    -webkit-text-fill-color: white;
+    animation: none;
+    filter: none;
+  }
 }

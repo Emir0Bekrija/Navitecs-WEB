@@ -1,21 +1,21 @@
 [
   {
-    "id": "senior-bim-consultant",
-    "title": "Senior BIM Consultant",
-    "department": "BIM Consulting",
-    "location": "Remote / Hybrid",
-    "type": "Full-time",
-    "description": "Lead BIM implementation strategies, coordinate multidisciplinary Revit workflows, and support project teams in delivering high-quality digital design solutions.",
-    "active": true,
-    "createdAt": "2026-01-01T00:00:00.000Z"
-  },
-  {
     "id": "architectural-designer",
     "title": "Architectural Designer (Autodesk Revit)",
     "department": "Architectural Design",
     "location": "Remote / On-site",
     "type": "Full-time",
     "description": "Develop architectural concepts, detailed drawings, and coordinated Revit models for residential, commercial, and mixed-use projects.",
+    "active": true,
+    "createdAt": "2026-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "senior-bim-consultant",
+    "title": "Senior BIM Consultant",
+    "department": "BIM Consulting",
+    "location": "Remote / Hybrid",
+    "type": "Full-time",
+    "description": "Lead BIM implementation strategies, coordinate multidisciplinary Revit workflows, and support project teams in delivering high-quality digital design solutions.",
     "active": true,
     "createdAt": "2026-01-01T00:00:00.000Z"
   },
