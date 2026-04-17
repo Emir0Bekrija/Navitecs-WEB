@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Page() {
-  return <ApplyClient />;
+type Props = { searchParams: Promise<{ role?: string }> };
+
+export default async function Page({ searchParams }: Props) {
+  const { role } = await searchParams;
+  return <ApplyClient initialRole={role ?? ""} />;
 }

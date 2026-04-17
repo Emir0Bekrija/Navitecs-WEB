@@ -9,6 +9,7 @@ import {
   FileText,
   MessageSquare,
   FolderKanban,
+  Settings,
   LogOut,
   Menu,
   X,
@@ -21,6 +22,7 @@ const navItems = [
   { href: "/admin/applications", label: "Applications", icon: FileText },
   { href: "/admin/contacts", label: "Contacts", icon: MessageSquare },
   { href: "/admin/projects", label: "Projects", icon: FolderKanban },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 export default function AdminShell({

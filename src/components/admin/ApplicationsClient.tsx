@@ -1,13 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronUp, FileText, Mail, Phone, Linkedin, Globe } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  Mail,
+  Phone,
+  Linkedin,
+  Globe,
+  FileDown,
+  Reply,
+} from "lucide-react";
 import type { Application } from "@/types/index";
+import ReplyModal from "./ReplyModal";
 
 export default function ApplicationsClient() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [replyTarget, setReplyTarget] = useState<{ email: string; name: string; role: string } | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/applications")
@@ -49,9 +61,7 @@ export default function ApplicationsClient() {
               >
                 <button
                   className="w-full flex items-center gap-4 p-5 text-left hover:bg-white/3 transition-colors"
-                  onClick={() =>
-                    setExpandedId(isExpanded ? null : app.id)
-                  }
+                  onClick={() => setExpandedId(isExpanded ? null : app.id)}
                 >
                   <div className="w-10 h-10 rounded-full bg-[#00AEEF]/15 flex items-center justify-center text-[#00AEEF] font-bold shrink-0">
                     {app.firstName[0]}
@@ -81,10 +91,8 @@ export default function ApplicationsClient() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div className="flex items-center gap-2 text-gray-300">
                         <Mail size={14} className="text-[#00AEEF] shrink-0" />
-                        <a
-                          href={`mailto:${app.email}`}
-                          className="hover:text-[#00AEEF] transition-colors truncate"
-                        >
+                        <a href={`mailto:${app.email}`}
+                          className="hover:text-[#00AEEF] transition-colors truncate">
                           {app.email}
                         </a>
                       </div>
@@ -97,12 +105,8 @@ export default function ApplicationsClient() {
                       {app.linkedin && (
                         <div className="flex items-center gap-2 text-gray-300">
                           <Linkedin size={14} className="text-[#00AEEF] shrink-0" />
-                          <a
-                            href={app.linkedin}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:text-[#00AEEF] transition-colors truncate"
-                          >
+                          <a href={app.linkedin} target="_blank" rel="noopener noreferrer"
+                            className="hover:text-[#00AEEF] transition-colors truncate">
                             LinkedIn Profile
                           </a>
                         </div>
@@ -110,12 +114,8 @@ export default function ApplicationsClient() {
                       {app.portfolio && (
                         <div className="flex items-center gap-2 text-gray-300">
                           <Globe size={14} className="text-[#00AEEF] shrink-0" />
-                          <a
-                            href={app.portfolio}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:text-[#00AEEF] transition-colors truncate"
-                          >
+                          <a href={app.portfolio} target="_blank" rel="noopener noreferrer"
+                            className="hover:text-[#00AEEF] transition-colors truncate">
                             Portfolio
                           </a>
                         </div>
@@ -123,10 +123,15 @@ export default function ApplicationsClient() {
                     </div>
 
                     {app.cvFileName && (
-                      <div className="flex items-center gap-2 text-sm text-gray-400 bg-white/5 rounded-lg px-3 py-2">
-                        <FileText size={14} className="text-[#00FF9C]" />
-                        CV: {app.cvFileName}
-                      </div>
+                      <a
+                        href={`/api/admin/cv/${encodeURIComponent(app.cvFileName)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-[#00AEEF]/10 border border-[#00AEEF]/20 text-[#00AEEF] rounded-lg text-sm hover:bg-[#00AEEF]/20 transition-colors"
+                      >
+                        <FileDown size={14} />
+                        View CV — {app.cvFileName.replace(/^\d+-/, "")}
+                      </a>
                     )}
 
                     {app.message && (
@@ -140,19 +145,41 @@ export default function ApplicationsClient() {
                       </div>
                     )}
 
-                    <p className="text-xs text-gray-600">
-                      Submitted{" "}
-                      {new Date(app.submittedAt).toLocaleString("en-GB", {
-                        dateStyle: "long",
-                        timeStyle: "short",
-                      })}
-                    </p>
+                    <div className="flex items-center gap-3 pt-1">
+                      <button
+                        onClick={() =>
+                          setReplyTarget({
+                            email: app.email,
+                            name: `${app.firstName} ${app.lastName}`,
+                            role: app.role,
+                          })
+                        }
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#00AEEF]/15 to-[#00FF9C]/15 border border-[#00AEEF]/30 text-white rounded-lg text-sm hover:from-[#00AEEF]/25 hover:to-[#00FF9C]/25 transition-all"
+                      >
+                        <Reply size={14} />
+                        Reply via Email
+                      </button>
+                      <p className="text-xs text-gray-600">
+                        {new Date(app.submittedAt).toLocaleString("en-GB", {
+                          dateStyle: "long",
+                          timeStyle: "short",
+                        })}
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
             );
           })}
         </div>
+      )}
+
+      {replyTarget && (
+        <ReplyModal
+          to={replyTarget.email}
+          defaultSubject={`Re: Application for ${replyTarget.role}`}
+          onClose={() => setReplyTarget(null)}
+        />
       )}
     </div>
   );

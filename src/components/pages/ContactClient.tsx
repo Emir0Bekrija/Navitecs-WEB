@@ -345,18 +345,26 @@ export default function Contact() {
                 </div>
               </div>
 
-              <div className={`relative overflow-hidden h-80 ${cardClass}`}>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <MapPin className="text-[#00AEEF] mx-auto mb-4" size={48} />
-                    <p className="text-gray-400 font-semibold">
-                      Sarajevo, Bosnia and Herzegovina
-                    </p>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Office location map
-                    </p>
-                  </div>
-                </div>
+              <div className="relative overflow-hidden h-80 rounded-2xl border border-white/30">
+                <iframe
+                  src="https://maps.google.com/maps?q=43.8434,18.3788&z=16&output=embed"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0, filter: "invert(90%) hue-rotate(180deg)" }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="NAVITECS Office Location"
+                />
+                <a
+                  href="https://maps.app.goo.gl/SbudzFBbQBbuZYAr9"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute bottom-3 right-3 flex items-center gap-1.5 px-3 py-1.5 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg text-xs text-gray-300 hover:text-white transition-colors"
+                >
+                  <MapPin size={11} className="text-[#00AEEF]" />
+                  Open in Maps
+                </a>
               </div>
 
               <div>

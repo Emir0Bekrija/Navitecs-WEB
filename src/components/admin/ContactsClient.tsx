@@ -1,13 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronUp, MessageSquare, Mail, Phone, Building2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  MessageSquare,
+  Mail,
+  Phone,
+  Building2,
+  Reply,
+} from "lucide-react";
 import type { ContactSubmission } from "@/types/index";
+import ReplyModal from "./ReplyModal";
 
 export default function ContactsClient() {
   const [contacts, setContacts] = useState<ContactSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [replyTarget, setReplyTarget] = useState<{ email: string; name: string; projectType: string } | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/contacts")
@@ -49,9 +59,7 @@ export default function ContactsClient() {
               >
                 <button
                   className="w-full flex items-center gap-4 p-5 text-left hover:bg-white/3 transition-colors"
-                  onClick={() =>
-                    setExpandedId(isExpanded ? null : contact.id)
-                  }
+                  onClick={() => setExpandedId(isExpanded ? null : contact.id)}
                 >
                   <div className="w-10 h-10 rounded-full bg-[#00FF9C]/15 flex items-center justify-center text-[#00FF9C] font-bold shrink-0">
                     {contact.name[0]}
@@ -61,7 +69,7 @@ export default function ContactsClient() {
                     <p className="text-sm text-gray-400 truncate">
                       {contact.company
                         ? `${contact.company} · ${contact.projectType || contact.email}`
-                        : (contact.projectType || contact.email)}
+                        : contact.projectType || contact.email}
                     </p>
                   </div>
                   <div className="text-xs text-gray-500 shrink-0 hidden sm:block">
@@ -83,10 +91,8 @@ export default function ContactsClient() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div className="flex items-center gap-2 text-gray-300">
                         <Mail size={14} className="text-[#00FF9C] shrink-0" />
-                        <a
-                          href={`mailto:${contact.email}`}
-                          className="hover:text-[#00FF9C] transition-colors truncate"
-                        >
+                        <a href={`mailto:${contact.email}`}
+                          className="hover:text-[#00FF9C] transition-colors truncate">
                           {contact.email}
                         </a>
                       </div>
@@ -119,14 +125,20 @@ export default function ContactsClient() {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <a
-                        href={`mailto:${contact.email}?subject=Re: ${contact.projectType || "Your inquiry"}`}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#00FF9C]/10 border border-[#00FF9C]/20 text-[#00FF9C] rounded-lg text-sm hover:bg-[#00FF9C]/20 transition-colors"
+                    <div className="flex items-center gap-3 pt-1">
+                      <button
+                        onClick={() =>
+                          setReplyTarget({
+                            email: contact.email,
+                            name: contact.name,
+                            projectType: contact.projectType,
+                          })
+                        }
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#00FF9C]/15 to-[#00AEEF]/15 border border-[#00FF9C]/30 text-white rounded-lg text-sm hover:from-[#00FF9C]/25 hover:to-[#00AEEF]/25 transition-all"
                       >
-                        <Mail size={14} />
-                        Reply by Email
-                      </a>
+                        <Reply size={14} />
+                        Reply via Email
+                      </button>
                       <p className="text-xs text-gray-600">
                         {new Date(contact.submittedAt).toLocaleString("en-GB", {
                           dateStyle: "long",
@@ -140,6 +152,14 @@ export default function ContactsClient() {
             );
           })}
         </div>
+      )}
+
+      {replyTarget && (
+        <ReplyModal
+          to={replyTarget.email}
+          defaultSubject={`Re: ${replyTarget.projectType ? `${replyTarget.projectType} inquiry` : "Your inquiry"}`}
+          onClose={() => setReplyTarget(null)}
+        />
       )}
     </div>
   );

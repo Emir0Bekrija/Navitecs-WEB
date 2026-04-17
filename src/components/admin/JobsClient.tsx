@@ -11,6 +11,8 @@ import {
   MapPin,
   Clock,
   Briefcase,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import type { Job } from "@/types/index";
 
@@ -44,6 +46,19 @@ export default function JobsClient() {
     loadJobs();
   }
 
+  async function move(index: number, direction: "up" | "down") {
+    const newJobs = [...jobs];
+    const swapIndex = direction === "up" ? index - 1 : index + 1;
+    if (swapIndex < 0 || swapIndex >= newJobs.length) return;
+    [newJobs[index], newJobs[swapIndex]] = [newJobs[swapIndex], newJobs[index]];
+    setJobs(newJobs); // optimistic update
+    await fetch("/api/admin/jobs/reorder", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: newJobs.map((j) => j.id) }),
+    });
+  }
+
   return (
     <div className="space-y-6 max-w-5xl">
       <div className="flex items-center justify-between">
@@ -51,7 +66,7 @@ export default function JobsClient() {
           <h2 className="text-2xl font-bold">Job Postings</h2>
           <p className="text-gray-400 text-sm mt-0.5">
             {jobs.filter((j) => j.active).length} active ·{" "}
-            {jobs.length} total
+            {jobs.length} total · drag ↕ to reorder
           </p>
         </div>
         <Link
@@ -83,14 +98,34 @@ export default function JobsClient() {
         </div>
       ) : (
         <div className="space-y-3">
-          {jobs.map((job) => (
+          {jobs.map((job, index) => (
             <div
               key={job.id}
               className={`bg-[#0a0a0a] border rounded-2xl p-5 transition-all ${
                 job.active ? "border-white/10" : "border-white/5 opacity-60"
               }`}
             >
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3">
+                {/* Reorder buttons */}
+                <div className="flex flex-col gap-0.5 shrink-0 mt-1">
+                  <button
+                    onClick={() => move(index, "up")}
+                    disabled={index === 0}
+                    className="p-1 rounded hover:bg-white/5 text-gray-600 hover:text-gray-300 disabled:opacity-20 transition-colors"
+                    title="Move up"
+                  >
+                    <ChevronUp size={14} />
+                  </button>
+                  <button
+                    onClick={() => move(index, "down")}
+                    disabled={index === jobs.length - 1}
+                    className="p-1 rounded hover:bg-white/5 text-gray-600 hover:text-gray-300 disabled:opacity-20 transition-colors"
+                    title="Move down"
+                  >
+                    <ChevronDown size={14} />
+                  </button>
+                </div>
+
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <h3 className="font-semibold text-white">{job.title}</h3>
