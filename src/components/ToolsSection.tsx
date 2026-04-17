@@ -66,7 +66,7 @@ export default function ToolsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="relative bg-black border border-white/15 rounded-2xl p-6 hover:bg-black hover:border-white/30 transition-all group shadow-lg"
+              className="relative bg-black/50 border border-white/15 rounded-2xl p-6 hover:bg-black hover:border-white/30 transition-all group shadow-lg"
             >
               <div className="flex items-center space-x-4">
                 <div className="p-3 bg-gradient-to-br from-[#00AEEF]/20 to-[#00FF9C]/20 rounded-xl group-hover:scale-110 transition-transform">

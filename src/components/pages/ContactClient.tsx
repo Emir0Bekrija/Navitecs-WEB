@@ -53,12 +53,6 @@ export default function Contact() {
       link: "mailto:info@navitecs.ba",
     },
     {
-      icon: Phone,
-      title: "Phone",
-      content: "+387 33 XXX XXX",
-      link: "tel:+38733XXXXXX",
-    },
-    {
       icon: MapPin,
       title: "Office",
       content: "Sarajevo, Bosnia and Herzegovina",

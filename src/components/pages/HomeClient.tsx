@@ -123,7 +123,7 @@ export default function HomeClient() {
                   </span>
                 </Link>
 
-                <div className="relative inline-flex bg-black border border-white/20 hover:bg-black hover:border-white/30 rounded-lg shadow-lg">
+                <div className="relative inline-flex bg-black/50 border border-white/15 hover:bg-black hover:border-white/30 rounded-lg shadow-lg">
                   <Link
                     href="/contact"
                     className="relative z-10 inline-flex items-center px-8 py-4 text-white font-semibold rounded-lg  transition-all"
@@ -200,7 +200,7 @@ export default function HomeClient() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="relative bg-black border border-white/15 rounded-2xl p-6 hover:bg-black hover:border-white/30 transition-all shadow-lg"
+                className="relative bg-black/50 border border-white/15 rounded-2xl p-6 hover:bg-black hover:border-white/30 transition-all shadow-lg"
               >
                 <div className="mb-4">
                   <item.icon className="text-[#00FF9C]" size={32} />
@@ -241,7 +241,7 @@ export default function HomeClient() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="group relative bg-black border border-white/15 rounded-2xl p-8 hover:bg-black hover:border-white/30 transition-all duration-300 shadow-lg"
+                className="group relative bg-black/50 border border-white/15 rounded-2xl p-8 hover:bg-black hover:border-white/30 transition-all duration-300 shadow-lg"
               >
                 <div className="flex items-start space-x-4">
                   <div className="p-3 bg-gradient-to-br from-[#00AEEF]/20 to-[#00FF9C]/20 rounded-xl group-hover:scale-110 transition-transform flex-shrink-0">
@@ -294,7 +294,7 @@ export default function HomeClient() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="relative bg-black border border-white/15 rounded-xl p-6 hover:bg-black hover:border-white/30 transition-all text-center shadow-lg"
+                className="relative bg-black/50 border border-white/15 rounded-xl p-6 hover:bg-black hover:border-white/30 transition-all text-center shadow-lg"
               >
                 <h3 className="font-semibold text-lg">{industry}</h3>
               </motion.div>
