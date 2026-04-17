@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ProjectDetailsClient from "../../../components/pages/ProjectDetailsClient";
+import { getProjects } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "Project Details",
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Page() {
-  return <ProjectDetailsClient />;
+export default async function Page() {
+  const projects = await getProjects();
+  return <ProjectDetailsClient allProjects={projects} />;
 }

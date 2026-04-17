@@ -19,57 +19,83 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-export default function CareersClient() {
-  const jobs = [
-    {
-      title: "Senior BIM Consultant",
-      department: "BIM Consulting",
-      location: "Remote / Hybrid",
-      type: "Full-time",
-      description:
-        "Lead BIM implementation strategies, coordinate multidisciplinary Revit workflows, and support project teams in delivering high-quality digital design solutions.",
-    },
-    {
-      title: "Architectural Designer (Autodesk Revit)",
-      department: "Architectural Design",
-      location: "Remote / On-site",
-      type: "Full-time",
-      description:
-        "Develop architectural concepts, detailed drawings, and coordinated Revit models for residential, commercial, and mixed-use projects.",
-    },
-    {
-      title: "Structural Design Engineer (Autodesk Revit)",
-      department: "Structural Design",
-      location: "Remote / Hybrid",
-      type: "Full-time",
-      description:
-        "Create and manage structural Revit models, produce design documentation, and collaborate closely with architectural and MEP teams.",
-    },
-    {
-      title: "MEP Design Engineer (Revit)",
-      department: "MEP Design",
-      location: "Remote",
-      type: "Full-time",
-      description:
-        "Design and coordinate mechanical, electrical, and plumbing systems in Autodesk Revit while ensuring accuracy, efficiency, and project compliance.",
-    },
-    {
-      title: "Project Development Manager",
-      department: "Project Development",
-      location: "Hybrid / On-site",
-      type: "Full-time",
-      description:
-        "Drive project planning, client coordination, and development strategy while overseeing BIM-based design delivery from concept through execution.",
-    },
-    {
-      title: "Junior BIM Modeler (Autodesk Revit)",
-      department: "BIM Production",
-      location: "Remote",
-      type: "Internship",
-      description:
-        "Support project teams by developing Revit models, preparing documentation, and gaining hands-on experience in BIM consulting and multidisciplinary design.",
-    },
-  ];
+import type { Job } from "@/types/index";
+
+type CareersClientProps = {
+  initialJobs?: Job[];
+};
+
+const defaultJobs = [
+  {
+    id: "senior-bim-consultant",
+    title: "Senior BIM Consultant",
+    department: "BIM Consulting",
+    location: "Remote / Hybrid",
+    type: "Full-time",
+    description:
+      "Lead BIM implementation strategies, coordinate multidisciplinary Revit workflows, and support project teams in delivering high-quality digital design solutions.",
+    active: true,
+    createdAt: "",
+  },
+  {
+    id: "architectural-designer",
+    title: "Architectural Designer (Autodesk Revit)",
+    department: "Architectural Design",
+    location: "Remote / On-site",
+    type: "Full-time",
+    description:
+      "Develop architectural concepts, detailed drawings, and coordinated Revit models for residential, commercial, and mixed-use projects.",
+    active: true,
+    createdAt: "",
+  },
+  {
+    id: "structural-design-engineer",
+    title: "Structural Design Engineer (Autodesk Revit)",
+    department: "Structural Design",
+    location: "Remote / Hybrid",
+    type: "Full-time",
+    description:
+      "Create and manage structural Revit models, produce design documentation, and collaborate closely with architectural and MEP teams.",
+    active: true,
+    createdAt: "",
+  },
+  {
+    id: "mep-design-engineer",
+    title: "MEP Design Engineer (Revit)",
+    department: "MEP Design",
+    location: "Remote",
+    type: "Full-time",
+    description:
+      "Design and coordinate mechanical, electrical, and plumbing systems in Autodesk Revit while ensuring accuracy, efficiency, and project compliance.",
+    active: true,
+    createdAt: "",
+  },
+  {
+    id: "project-development-manager",
+    title: "Project Development Manager",
+    department: "Project Development",
+    location: "Hybrid / On-site",
+    type: "Full-time",
+    description:
+      "Drive project planning, client coordination, and development strategy while overseeing BIM-based design delivery from concept through execution.",
+    active: true,
+    createdAt: "",
+  },
+  {
+    id: "junior-bim-modeler",
+    title: "Junior BIM Modeler (Autodesk Revit)",
+    department: "BIM Production",
+    location: "Remote",
+    type: "Internship",
+    description:
+      "Support project teams by developing Revit models, preparing documentation, and gaining hands-on experience in BIM consulting and multidisciplinary design.",
+    active: true,
+    createdAt: "",
+  },
+];
+
+export default function CareersClient({ initialJobs }: CareersClientProps) {
+  const jobs = initialJobs ?? defaultJobs;
 
   const benefits = [
     {

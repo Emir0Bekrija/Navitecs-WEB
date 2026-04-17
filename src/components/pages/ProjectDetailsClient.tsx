@@ -5,9 +5,13 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, CheckCircle2, ChevronRight, Download } from "lucide-react";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
-import { projects } from "../../data/projects";
+import { projects as staticProjects } from "../../data/projects";
+import type { Project } from "@/types/index";
 
-export default function ProjectDetailsClient() {
+type Props = { allProjects?: Project[] };
+
+export default function ProjectDetailsClient({ allProjects }: Props) {
+  const projects = allProjects ?? (staticProjects as Project[]);
   const params = useParams();
   const id =
     typeof params.id === "string"

@@ -23,8 +23,13 @@ export default function ApplyClient({ initialRole = "" }: ApplyClientProps) {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    await fetch("/api/apply", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...formData, cvFileName: fileName ?? undefined }),
+    });
     setFormSubmitted(true);
 
     setTimeout(() => {

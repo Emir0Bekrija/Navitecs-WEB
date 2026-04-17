@@ -5,9 +5,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { Building2, Filter, ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
-import { projects } from "../../data/projects";
+import { projects as staticProjects } from "../../data/projects";
+import type { Project } from "@/types/index";
 
-export default function ProjectsClient() {
+type Props = { initialProjects?: Project[] };
+
+export default function ProjectsClient({ initialProjects }: Props) {
+  const projects = initialProjects ?? (staticProjects as Project[]);
   const [activeFilter, setActiveFilter] = useState("All");
 
   const filters = ["All", "Residential", "Commercial", "Infrastructure", "MEP"];

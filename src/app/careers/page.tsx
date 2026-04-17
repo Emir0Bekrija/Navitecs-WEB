@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import CareersClient from "../../components/pages/CareersClient";
+import { getJobs } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "Careers",
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Page() {
-  return <CareersClient />;
+export default async function Page() {
+  const jobs = await getJobs();
+  return <CareersClient initialJobs={jobs.filter((j) => j.active)} />;
 }
