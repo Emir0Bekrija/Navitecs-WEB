@@ -1,30 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { sendEmail } from "@/lib/email";
+import { requireAdmin } from "@/lib/proxy";
+
+const EmailSchema = z.object({
+  to: z.string().email(),
+  subject: z.string().min(1).max(255),
+  message: z.string().min(1).max(10000),
+});
 
 // POST /api/admin/email — send a reply email
 export async function POST(request: NextRequest) {
-  try {
-    const { to, subject, message } = await request.json();
+  const deny = await requireAdmin();
+  if (deny) return deny;
 
-    if (!to || !subject || !message) {
-      return NextResponse.json(
-        { error: "to, subject and message are required" },
-        { status: 400 },
-      );
-    }
+  const body = await request.json();
+  const parsed = EmailSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
 
-    // Wrap plain-text message in simple HTML
-    const html = `<div style="font-family:sans-serif;font-size:15px;line-height:1.6;color:#222;">
-${String(message).replace(/\n/g, "<br/>")}
+  const { to, subject, message } = parsed.data;
+  const html = `<div style="font-family:sans-serif;font-size:15px;line-height:1.6;color:#222;">
+${message.replace(/\n/g, "<br/>")}
 <br/><br/>
 <hr style="border:none;border-top:1px solid #ddd;margin:24px 0"/>
 <p style="font-size:13px;color:#888;">NAVITECS d.o.o. &mdash; Sarajevo, Bosnia and Herzegovina</p>
 </div>`;
 
-    await sendEmail(String(to), String(subject), html);
+  try {
+    await sendEmail(to, subject, html);
     return NextResponse.json({ ok: true });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to send email";
-    return NextResponse.json({ error: message }, { status: 500 });
+    const msg = err instanceof Error ? err.message : "Failed to send email";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

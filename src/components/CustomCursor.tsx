@@ -48,11 +48,7 @@ export function CustomCursor() {
           WebkitMaskImage: maskImage,
         }}
       >
-        <motion.div
-          animate={{
-            backgroundPosition: ["0px 0px", "64px 64px"],
-          }}
-          transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
+        <div
           className="absolute inset-0 w-[200vw] h-[200vh] -left-[50vw] -top-[50vh]"
           style={{
             backgroundImage: `
@@ -62,19 +58,19 @@ export function CustomCursor() {
                 linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px)
               `,
             backgroundSize: "64px 64px, 64px 64px, 16px 16px, 16px 16px",
+            animation: "cursor-grid-scroll 4s linear infinite",
           }}
         />
 
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 480, ease: "linear" }}
+        <div
           className="absolute top-1/2 left-1/2 w-[2400px] h-[2400px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center mix-blend-screen"
+          style={{ animation: "cursor-spin 480s linear infinite" }}
         >
           <div className="absolute w-[1200px] h-[1200px] border-[2px] border-white/30 rounded-full" />
           <div className="absolute w-[800px] h-[800px] border border-dashed border-white/80 rounded-full" />
           <div className="absolute w-full h-[2px] bg-white/30" />
           <div className="absolute w-[2px] h-full bg-white/30" />
-        </motion.div>
+        </div>
       </motion.div>
     </div>
   );

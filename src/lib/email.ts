@@ -1,7 +1,7 @@
 // Server-only: Node.js runtime only, do NOT import in client components or middleware.
+import "server-only";
 import nodemailer from "nodemailer";
-import { promises as fs } from "fs";
-import path from "path";
+import { prisma } from "@/lib/db";
 
 type SmtpConfig = {
   host: string;
@@ -13,27 +13,36 @@ type SmtpConfig = {
   fromEmail: string;
 };
 
-const CONFIG_PATH = path.join(process.cwd(), "src", "data", "smtp-config.json");
+const DEFAULT_CONFIG: SmtpConfig = {
+  host: "",
+  port: 587,
+  secure: false,
+  user: "",
+  password: "",
+  fromName: "NAVITECS",
+  fromEmail: "",
+};
 
 export async function getSmtpConfig(): Promise<SmtpConfig> {
-  try {
-    const raw = await fs.readFile(CONFIG_PATH, "utf-8");
-    return JSON.parse(raw) as SmtpConfig;
-  } catch {
-    return {
-      host: "",
-      port: 587,
-      secure: false,
-      user: "",
-      password: "",
-      fromName: "NAVITECS",
-      fromEmail: "",
-    };
-  }
+  const row = await prisma.smtpConfig.findUnique({ where: { id: 1 } });
+  if (!row) return DEFAULT_CONFIG;
+  return {
+    host: row.host,
+    port: row.port,
+    secure: row.secure,
+    user: row.user,
+    password: row.password,
+    fromName: row.fromName,
+    fromEmail: row.fromEmail,
+  };
 }
 
 export async function saveSmtpConfig(config: SmtpConfig): Promise<void> {
-  await fs.writeFile(CONFIG_PATH, JSON.stringify(config, null, 2), "utf-8");
+  await prisma.smtpConfig.upsert({
+    where: { id: 1 },
+    update: config,
+    create: { id: 1, ...config },
+  });
 }
 
 export async function sendEmail(to: string, subject: string, html: string): Promise<void> {

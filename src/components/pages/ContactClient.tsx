@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { useState } from "react";
-import { Mail, Phone, MapPin, Send, CheckCircle } from "lucide-react";
+import { Mail, MapPin, Send, CheckCircle, Link } from "lucide-react";
 
 export default function Contact() {
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -61,7 +61,8 @@ export default function Contact() {
       icon: MapPin,
       title: "Office",
       content: "Sarajevo, Bosnia and Herzegovina",
-      link: "#",
+      link: "https://maps.app.goo.gl/cTrHXtMa9y67cHtH8",
+      external: true,
     },
   ];
 
@@ -100,6 +101,8 @@ export default function Contact() {
               <motion.a
                 key={info.title}
                 href={info.link}
+                target={info.external ? "_blank" : undefined}
+                rel={info.external ? "noopener noreferrer" : undefined}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
@@ -276,6 +279,59 @@ export default function Contact() {
 
                   <div>
                     <label
+                      htmlFor="projectType"
+                      className="block text-sm font-medium mb-2"
+                    >
+                      Project Service
+                    </label>
+                    <select
+                      id="projectType"
+                      name="projectType"
+                      value={formData.projectType}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 bg-black/70 hover:bg-black border border-white/30 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white"
+                    >
+                      <option value="" className="bg-[#111] text-white">
+                        Select project type
+                      </option>
+                      <option
+                        value="residential"
+                        className="bg-[#111] text-white"
+                      >
+                        Residential
+                      </option>
+                      <option
+                        value="commercial"
+                        className="bg-[#111] text-white"
+                      >
+                        Commercial
+                      </option>
+                      <option
+                        value="infrastructure"
+                        className="bg-[#111] text-white"
+                      >
+                        Infrastructure
+                      </option>
+                      <option
+                        value="bim-consulting"
+                        className="bg-[#111] text-white"
+                      >
+                        BIM Consulting
+                      </option>
+                      <option
+                        value="mep-design"
+                        className="bg-[#111] text-white"
+                      >
+                        MEP Design
+                      </option>
+                      <option value="other" className="bg-[#111] text-white">
+                        Other
+                      </option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label
                       htmlFor="message"
                       className="block text-sm font-medium mb-2"
                     >
@@ -334,23 +390,19 @@ export default function Contact() {
                       />
                       <p>info@navitecs.ba</p>
                     </div>
-                    <div className="flex items-start space-x-3">
-                      <Phone
-                        className="text-[#00AEEF] flex-shrink-0 mt-1"
-                        size={20}
-                      />
-                      <p>+387 33 XXX XXX</p>
-                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="relative overflow-hidden h-80 rounded-2xl border border-white/30">
                 <iframe
-                  src="https://maps.google.com/maps?q=43.8434,18.3788&z=16&output=embed"
+                  src="https://maps.google.com/maps?q=43.85046,18.36181&z=16&output=embed"
                   width="100%"
                   height="100%"
-                  style={{ border: 0, filter: "invert(90%) hue-rotate(180deg)" }}
+                  style={{
+                    border: 0,
+                    filter: "invert(90%) hue-rotate(180deg)",
+                  }}
                   allowFullScreen
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"

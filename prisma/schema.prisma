@@ -1,0 +1,169 @@
+// Prisma schema for NAVITECS Next.js
+// MySQL datasource + Prisma Client
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ─── Admin ────────────────────────────────────────────────────────────────────
+
+model AdminUser {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique @db.VarChar(100)
+  password  String   @db.VarChar(255) // bcrypt hash
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admin_users")
+}
+
+// ─── Projects / Case Studies ──────────────────────────────────────────────────
+
+model Project {
+  id          String   @id @db.VarChar(200) // kebab-case slug
+  title       String   @db.VarChar(255)
+  category    String   @db.VarChar(100)
+  description String   @db.Text
+  scope       String   @db.Text
+  image       String   @db.VarChar(500) // URL or relative path
+  challenge   String   @db.Text
+  solution    String   @db.Text
+  results     Json     // string[]
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("projects")
+}
+
+// ─── Jobs ─────────────────────────────────────────────────────────────────────
+
+model Job {
+  id           String        @id @default(cuid()) @db.VarChar(36)
+  title        String        @db.VarChar(255)
+  summary      String        @db.VarChar(500) @default("") // short text for careers list
+  department   String        @db.VarChar(100)
+  location     String        @db.VarChar(100)
+  type         String        @db.VarChar(50) // full-time, part-time, contract, etc.
+  description  String        @db.Text // full detailed description shown on apply page
+  active       Boolean       @default(true)
+  order        Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
+
+  @@map("jobs")
+}
+
+// ─── Applications ─────────────────────────────────────────────────────────────
+
+model Application {
+  id          String     @id @default(cuid()) @db.VarChar(36)
+  firstName   String     @db.VarChar(100)
+  lastName    String     @db.VarChar(100)
+  email       String     @db.VarChar(255)
+  phone       String     @db.VarChar(50)
+  role        String     @db.VarChar(255)
+  linkedin    String?    @db.VarChar(500)
+  portfolio   String?    @db.VarChar(500)
+  message     String?    @db.Text
+  cvFileName  String?    @db.VarChar(255) // original filename
+  cvPath      String?    @db.VarChar(500) // filesystem path (relative to uploads/)
+  submittedAt DateTime   @default(now())
+
+  // Relations
+  jobId       String?    @db.VarChar(36)
+  job         Job?       @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  applicantId String?    @db.VarChar(36)
+  applicant   Applicant? @relation(fields: [applicantId], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([jobId])
+  @@index([applicantId])
+  @@map("applications")
+}
+
+// ─── Applicant Tracking ───────────────────────────────────────────────────────
+
+/// Deduplicated person record — one row per unique email.
+/// Links all Applications from the same person across multiple job postings.
+model Applicant {
+  id           String        @id @default(cuid()) @db.VarChar(36)
+  email        String        @unique @db.VarChar(255)
+  firstName    String        @db.VarChar(100)
+  lastName     String        @db.VarChar(100)
+  phone        String?       @db.VarChar(50)
+  // Internal scoring
+  score        Int?          // 1–10
+  comments     String?       @db.Text // internal notes
+  fitsRoles    String?       @db.Text // roles/skills they are good for
+  doesNotFit   String?       @db.Text // roles/skills they are not right for
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
+
+  @@map("applicants")
+}
+
+// ─── Contact Submissions ──────────────────────────────────────────────────────
+
+model Contact {
+  id               String          @id @default(cuid()) @db.VarChar(36)
+  name             String          @db.VarChar(255)
+  email            String          @db.VarChar(255)
+  company          String?         @db.VarChar(255)
+  phone            String?         @db.VarChar(50)
+  projectType      String?         @db.VarChar(100)
+  service          String?         @db.VarChar(100)
+  message          String          @db.Text
+  submittedAt      DateTime        @default(now())
+
+  // Relations
+  companyContactId String?         @db.VarChar(36)
+  companyContact   CompanyContact? @relation(fields: [companyContactId], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([companyContactId])
+  @@map("contacts")
+}
+
+// ─── Company Contact Tracking ─────────────────────────────────────────────────
+
+/// Deduplicated company/person record — one row per unique email.
+/// Links all Contact submissions from the same person/company.
+model CompanyContact {
+  id        String    @id @default(cuid()) @db.VarChar(36)
+  email     String    @unique @db.VarChar(255)
+  name      String    @db.VarChar(255)
+  company   String?   @db.VarChar(255)
+  phone     String?   @db.VarChar(50)
+  // Internal scoring
+  score     Int?      // 1–10
+  comments  String?   @db.Text
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  contacts  Contact[]
+
+  @@map("company_contacts")
+}
+
+// ─── SMTP Config (singleton) ──────────────────────────────────────────────────
+
+model SmtpConfig {
+  id        Int      @id @default(1) // singleton — always update row id=1
+  host      String   @default("") @db.VarChar(255)
+  port      Int      @default(587)
+  secure    Boolean  @default(false)
+  user      String   @default("") @db.VarChar(255)
+  password  String   @default("") @db.VarChar(255)
+  fromName  String   @default("NAVITECS") @db.VarChar(100)
+  fromEmail String   @default("") @db.VarChar(255)
+  updatedAt DateTime @updatedAt
+
+  @@map("smtp_config")
+}

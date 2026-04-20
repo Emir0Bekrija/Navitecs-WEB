@@ -22,16 +22,27 @@ type Stats = {
   recentContacts: ContactSubmission[];
 };
 
+async function fetchArray(url: string): Promise<unknown[]> {
+  const res = await fetch(url);
+  if (!res.ok) return [];
+  const data: unknown = await res.json();
+  return Array.isArray(data) ? data : [];
+}
+
 export default function DashboardClient() {
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
     async function load() {
       const [jobs, apps, contacts, projects] = await Promise.all([
-        fetch("/api/admin/jobs").then((r) => r.json()) as Promise<Job[]>,
-        fetch("/api/admin/applications").then((r) => r.json()) as Promise<Application[]>,
-        fetch("/api/admin/contacts").then((r) => r.json()) as Promise<ContactSubmission[]>,
-        fetch("/api/admin/projects").then((r) => r.json()) as Promise<Project[]>,
+        fetchArray("/api/admin/jobs") as Promise<Job[]>,
+        fetch("/api/admin/applications").then(async (r) => {
+          if (!r.ok) return [];
+          const json = await r.json() as { data?: Application[] };
+          return Array.isArray(json.data) ? json.data : [];
+        }),
+        fetchArray("/api/admin/contacts") as Promise<ContactSubmission[]>,
+        fetchArray("/api/admin/projects") as Promise<Project[]>,
       ]);
       setStats({
         totalJobs: jobs.length,

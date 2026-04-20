@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import CareersClient from "../../components/pages/CareersClient";
-import { getJobs } from "@/lib/data";
+import { prisma } from "@/lib/db";
 
 export const metadata: Metadata = {
   title: "Careers",
@@ -17,6 +17,19 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const jobs = await getJobs();
-  return <CareersClient initialJobs={jobs.filter((j) => j.active)} />;
+  const rows = await prisma.job.findMany({
+    where: { active: true },
+    orderBy: { order: "asc" },
+  });
+  const jobs = rows.map((j) => ({
+    id: j.id,
+    title: j.title,
+    department: j.department,
+    location: j.location,
+    type: j.type,
+    description: j.description,
+    active: j.active,
+    createdAt: j.createdAt.toISOString(),
+  }));
+  return <CareersClient initialJobs={jobs} />;
 }

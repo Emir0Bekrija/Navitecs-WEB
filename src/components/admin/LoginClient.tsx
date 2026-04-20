@@ -2,12 +2,17 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 
 export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const from = searchParams.get("from") ?? "/admin/dashboard";
+  // Auth.js appends ?callbackUrl=... when redirecting; fall back to /admin/dashboard
+  const callbackUrl =
+    searchParams.get("callbackUrl") ??
+    searchParams.get("from") ??
+    "/admin/dashboard";
 
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -20,18 +25,16 @@ export default function LoginClient() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/admin/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+      const result = await signIn("credentials", {
+        password,
+        redirect: false,
       });
 
-      if (res.ok) {
-        router.push(from);
-        router.refresh();
+      if (!result || result.error) {
+        setError("Invalid credentials");
       } else {
-        const data = await res.json();
-        setError(data.error || "Authentication failed");
+        router.push(callbackUrl);
+        router.refresh();
       }
     } catch {
       setError("Network error — please try again");

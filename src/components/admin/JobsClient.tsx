@@ -15,11 +15,14 @@ import {
   ChevronDown,
 } from "lucide-react";
 import type { Job } from "@/types/index";
+import DeleteModal from "./DeleteModal";
+
+type PendingDelete = { id: string; title: string };
 
 export default function JobsClient() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
 
   async function loadJobs() {
     const res = await fetch("/api/admin/jobs");
@@ -38,11 +41,8 @@ export default function JobsClient() {
     loadJobs();
   }
 
-  async function deleteJob(id: string) {
-    if (!confirm("Delete this job posting? This cannot be undone.")) return;
-    setDeletingId(id);
+  async function confirmDelete(id: string) {
     await fetch(`/api/admin/jobs/${id}`, { method: "DELETE" });
-    setDeletingId(null);
     loadJobs();
   }
 
@@ -51,7 +51,7 @@ export default function JobsClient() {
     const swapIndex = direction === "up" ? index - 1 : index + 1;
     if (swapIndex < 0 || swapIndex >= newJobs.length) return;
     [newJobs[index], newJobs[swapIndex]] = [newJobs[swapIndex], newJobs[index]];
-    setJobs(newJobs); // optimistic update
+    setJobs(newJobs);
     await fetch("/api/admin/jobs/reorder", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -174,9 +174,8 @@ export default function JobsClient() {
                     <Pencil size={16} />
                   </Link>
                   <button
-                    onClick={() => deleteJob(job.id)}
-                    disabled={deletingId === job.id}
-                    className="p-2 rounded-lg hover:bg-red-500/10 transition-colors text-gray-400 hover:text-red-400 disabled:opacity-50"
+                    onClick={() => setPendingDelete({ id: job.id, title: job.title })}
+                    className="p-2 rounded-lg hover:bg-red-500/10 transition-colors text-gray-400 hover:text-red-400"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -185,6 +184,14 @@ export default function JobsClient() {
             </div>
           ))}
         </div>
+      )}
+
+      {pendingDelete && (
+        <DeleteModal
+          itemName={pendingDelete.title}
+          onConfirm={() => confirmDelete(pendingDelete.id)}
+          onClose={() => setPendingDelete(null)}
+        />
       )}
     </div>
   );

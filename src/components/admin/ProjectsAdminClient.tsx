@@ -5,11 +5,14 @@ import Link from "next/link";
 import { Plus, Pencil, Trash2, FolderKanban } from "lucide-react";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import type { Project } from "@/types/index";
+import DeleteModal from "./DeleteModal";
+
+type PendingDelete = { id: string; title: string };
 
 export default function ProjectsAdminClient() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
 
   async function loadProjects() {
     const res = await fetch("/api/admin/projects");
@@ -19,11 +22,8 @@ export default function ProjectsAdminClient() {
 
   useEffect(() => { loadProjects(); }, []);
 
-  async function deleteProject(id: string) {
-    if (!confirm("Delete this project? This cannot be undone.")) return;
-    setDeletingId(id);
+  async function confirmDelete(id: string) {
     await fetch(`/api/admin/projects/${id}`, { method: "DELETE" });
-    setDeletingId(null);
     loadProjects();
   }
 
@@ -71,7 +71,6 @@ export default function ProjectsAdminClient() {
               className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all"
             >
               <div className="flex items-center gap-4 p-4">
-                {/* Thumbnail */}
                 <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-white/5">
                   {project.image ? (
                     <ImageWithFallback
@@ -119,9 +118,8 @@ export default function ProjectsAdminClient() {
                     <Pencil size={16} />
                   </Link>
                   <button
-                    onClick={() => deleteProject(project.id)}
-                    disabled={deletingId === project.id}
-                    className="p-2 rounded-lg hover:bg-red-500/10 transition-colors text-gray-400 hover:text-red-400 disabled:opacity-50"
+                    onClick={() => setPendingDelete({ id: project.id, title: project.title })}
+                    className="p-2 rounded-lg hover:bg-red-500/10 transition-colors text-gray-400 hover:text-red-400"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -130,6 +128,14 @@ export default function ProjectsAdminClient() {
             </div>
           ))}
         </div>
+      )}
+
+      {pendingDelete && (
+        <DeleteModal
+          itemName={pendingDelete.title}
+          onConfirm={() => confirmDelete(pendingDelete.id)}
+          onClose={() => setPendingDelete(null)}
+        />
       )}
     </div>
   );

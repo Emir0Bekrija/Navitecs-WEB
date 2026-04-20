@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   Briefcase,
@@ -35,7 +36,7 @@ export default function AdminShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   async function handleLogout() {
-    await fetch("/api/admin/auth", { method: "DELETE" });
+    await signOut({ redirect: false });
     router.push("/admin/login");
   }
 

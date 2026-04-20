@@ -21,6 +21,7 @@ export default function JobFormClient({ jobId }: Props) {
   const [error, setError] = useState("");
   const [form, setForm] = useState({
     title: "",
+    summary: "",
     department: "",
     location: "",
     type: "Full-time",
@@ -35,6 +36,7 @@ export default function JobFormClient({ jobId }: Props) {
       .then((job: Job) => {
         setForm({
           title: job.title,
+          summary: job.summary,
           department: job.department,
           location: job.location,
           type: job.type,
@@ -131,6 +133,27 @@ export default function JobFormClient({ jobId }: Props) {
           />
         </div>
 
+        <div>
+          <label htmlFor="summary" className={labelClass}>
+            Short Summary *{" "}
+            <span className="text-gray-600 font-normal">(shown on careers list, max 500 chars)</span>
+          </label>
+          <textarea
+            id="summary"
+            name="summary"
+            required
+            value={form.summary}
+            onChange={handleChange}
+            rows={2}
+            maxLength={500}
+            placeholder="One or two sentences describing the role at a glance…"
+            className={`${inputClass} resize-none`}
+          />
+          <p className="text-xs text-gray-600 mt-1 text-right">
+            {form.summary.length}/500
+          </p>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
             <label htmlFor="department" className={labelClass}>
@@ -183,7 +206,8 @@ export default function JobFormClient({ jobId }: Props) {
 
         <div>
           <label htmlFor="description" className={labelClass}>
-            Job Description *
+            Full Job Description *{" "}
+            <span className="text-gray-600 font-normal">(shown on apply page)</span>
           </label>
           <textarea
             id="description"
@@ -191,8 +215,8 @@ export default function JobFormClient({ jobId }: Props) {
             required
             value={form.description}
             onChange={handleChange}
-            rows={5}
-            placeholder="Describe the role, responsibilities, and requirements..."
+            rows={8}
+            placeholder="Full details: responsibilities, requirements, what we offer…"
             className={`${inputClass} resize-none`}
           />
         </div>

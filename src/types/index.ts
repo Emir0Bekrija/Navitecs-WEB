@@ -15,12 +15,22 @@ export type Project = {
 export type Job = {
   id: string;
   title: string;
+  summary: string;
   department: string;
   location: string;
   type: string;
   description: string;
   active: boolean;
   createdAt: string;
+};
+
+export type ApplicantRanking = {
+  id: string;
+  score: number | null;
+  comments: string | null;
+  fitsRoles: string | null;
+  doesNotFit: string | null;
+  _count: { applications: number };
 };
 
 export type Application = {
@@ -35,6 +45,14 @@ export type Application = {
   message: string;
   cvFileName?: string;
   submittedAt: string;
+  job?: { id: string; title: string } | null;
+  applicant?: ApplicantRanking | null;
+};
+
+export type CompanyContactRanking = {
+  id: string;
+  score: number | null;
+  comments: string | null;
 };
 
 export type ContactSubmission = {
@@ -44,6 +62,8 @@ export type ContactSubmission = {
   company: string;
   phone: string;
   projectType: string;
+  service?: string;
   message: string;
   submittedAt: string;
+  companyContact?: CompanyContactRanking | null;
 };

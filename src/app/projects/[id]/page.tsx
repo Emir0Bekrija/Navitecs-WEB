@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import ProjectDetailsClient from "../../../components/pages/ProjectDetailsClient";
-import { getProjects } from "@/lib/data";
+import { prisma } from "@/lib/db";
 
 export const metadata: Metadata = {
   title: "Project Details",
@@ -12,6 +12,19 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const projects = await getProjects();
+  const rows = await prisma.project.findMany({ orderBy: { order: "asc" } });
+  const projects = rows.map((p) => ({
+    id: p.id,
+    title: p.title,
+    category: p.category,
+    description: p.description,
+    scope: p.scope,
+    image: p.image,
+    caseStudy: {
+      challenge: p.challenge,
+      solution: p.solution,
+      results: Array.isArray(p.results) ? (p.results as string[]) : [],
+    },
+  }));
   return <ProjectDetailsClient allProjects={projects} />;
 }

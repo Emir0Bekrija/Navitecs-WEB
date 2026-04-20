@@ -354,7 +354,7 @@ export default function CareersClient({ initialJobs }: CareersClientProps) {
                       {job.title}
                     </h3>
                     <p className="text-gray-400 text-sm mb-4">
-                      {job.description}
+                      {job.summary || job.description}
                     </p>
 
                     <div className="flex flex-wrap gap-4 text-sm text-gray-400">
@@ -374,7 +374,7 @@ export default function CareersClient({ initialJobs }: CareersClientProps) {
                   </div>
 
                   <Link
-                    href={`/careers/apply?role=${encodeURIComponent(job.title)}`}
+                    href={`/careers/apply?role=${encodeURIComponent(job.title)}&jobId=${encodeURIComponent(job.id)}`}
                     className="px-6 py-3 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-lg hover:scale-105 transition-transform flex items-center justify-center space-x-2 whitespace-nowrap"
                   >
                     <span>Apply Now</span>

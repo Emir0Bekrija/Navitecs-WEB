@@ -127,15 +127,15 @@ export default function ServicesClient() {
     },
     {
       number: "03",
-      title: "BIM Coordination",
-      description:
-        "Creating coordinated 3D models and identifying potential conflicts.",
-    },
-    {
-      number: "04",
       title: "Design Development",
       description:
         "Detailed design of all systems with technical documentation.",
+    },
+    {
+      number: "04",
+      title: "BIM Coordination",
+      description:
+        "Creating coordinated 3D models and identifying potential conflicts.",
     },
     {
       number: "05",

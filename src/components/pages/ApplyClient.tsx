@@ -3,16 +3,21 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useState } from "react";
-import { Upload, CheckCircle, ArrowLeft, Send, Lock } from "lucide-react";
+import { Upload, CheckCircle, ArrowLeft, Send, Lock, MapPin, Clock, Briefcase } from "lucide-react";
+import type { JobDetails } from "@/app/careers/apply/page";
 
 type ApplyClientProps = {
   initialRole?: string;
+  initialJobId?: string;
+  jobDetails?: JobDetails | null;
 };
 
-export default function ApplyClient({ initialRole = "" }: ApplyClientProps) {
+export default function ApplyClient({ initialRole = "", initialJobId = "", jobDetails }: ApplyClientProps) {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -26,6 +31,8 @@ export default function ApplyClient({ initialRole = "" }: ApplyClientProps) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (fileError) return;
+    setSubmitError(null);
     setSubmitting(true);
 
     const form = e.currentTarget;
@@ -33,6 +40,7 @@ export default function ApplyClient({ initialRole = "" }: ApplyClientProps) {
 
     // Append text fields
     Object.entries(formData).forEach(([k, v]) => data.append(k, v));
+    if (initialJobId) data.append("jobId", initialJobId);
 
     // Append PDF file
     const fileInput = form.querySelector<HTMLInputElement>('input[type="file"]');
@@ -40,9 +48,15 @@ export default function ApplyClient({ initialRole = "" }: ApplyClientProps) {
       data.append("cv", fileInput.files[0]);
     }
 
-    await fetch("/api/apply", { method: "POST", body: data });
-
+    const res = await fetch("/api/apply", { method: "POST", body: data });
     setSubmitting(false);
+
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({})) as { error?: string };
+      setSubmitError(json.error ?? "Something went wrong. Please try again.");
+      return;
+    }
+
     setFormSubmitted(true);
 
     setTimeout(() => {
@@ -71,9 +85,16 @@ export default function ApplyClient({ initialRole = "" }: ApplyClientProps) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const MAX_CV_BYTES = 5 * 1024 * 1024; // 5 MB
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.length) {
-      setFileName(e.target.files[0].name);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFileName(file.name);
+    if (file.size > MAX_CV_BYTES) {
+      setFileError("File is too large. Maximum allowed size is 5 MB.");
+    } else {
+      setFileError(null);
     }
   };
 
@@ -96,13 +117,38 @@ export default function ApplyClient({ initialRole = "" }: ApplyClientProps) {
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Apply for{" "}
             <span className="bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] bg-clip-text text-transparent">
-              Position
+              {jobDetails ? jobDetails.title : "Position"}
             </span>
           </h1>
 
-          <p className="text-gray-400 text-lg mb-12">
-            Submit your application to join the NAVITECS team. Fill out the
-            fields below and we&apos;ll reach out to you shortly.
+          {/* Job details */}
+          {jobDetails && (
+            <div className="mb-10 bg-white/3 border border-white/10 rounded-2xl p-6 space-y-4">
+              <div className="flex flex-wrap gap-3 text-sm text-gray-400">
+                <span className="flex items-center gap-1.5">
+                  <Briefcase size={14} className="text-[#00AEEF]" />
+                  {jobDetails.department}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <MapPin size={14} className="text-[#00AEEF]" />
+                  {jobDetails.location}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Clock size={14} className="text-[#00AEEF]" />
+                  {jobDetails.type}
+                </span>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">About this role</p>
+                <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+                  {jobDetails.description}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <p className="text-gray-400 text-lg mb-10">
+            Submit your application below and we&apos;ll reach out to you shortly.
           </p>
 
           {formSubmitted ? (
@@ -232,15 +278,18 @@ export default function ApplyClient({ initialRole = "" }: ApplyClientProps) {
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     accept=".pdf"
                   />
-                  <div className="w-full px-4 py-8 bg-[#0a0a0a] border border-dashed border-white/20 rounded-lg flex flex-col items-center justify-center pointer-events-none">
-                    <Upload className="text-[#00AEEF] mb-2" size={24} />
+                  <div className={`w-full px-4 py-8 bg-[#0a0a0a] border border-dashed rounded-lg flex flex-col items-center justify-center pointer-events-none ${fileError ? "border-red-500/50" : "border-white/20"}`}>
+                    <Upload className={`mb-2 ${fileError ? "text-red-400" : "text-[#00AEEF]"}`} size={24} />
                     <p className="text-white mb-1 font-medium">
                       {fileName ? fileName : "Upload your resume"}
                     </p>
                     <p className="text-gray-400 text-sm">
-                      {fileName ? "Click to change file" : "PDF only · max 10 MB"}
+                      {fileName ? "Click to change file" : "PDF only · max 5 MB"}
                     </p>
                   </div>
+                  {fileError && (
+                    <p className="mt-2 text-sm text-red-400">{fileError}</p>
+                  )}
                 </div>
               </div>
 
@@ -257,9 +306,15 @@ export default function ApplyClient({ initialRole = "" }: ApplyClientProps) {
                 />
               </div>
 
+              {submitError && (
+                <p className="text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-3">
+                  {submitError}
+                </p>
+              )}
+
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || !!fileError}
                 className="w-full px-6 py-4 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-lg hover:scale-105 transition-transform flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 <span>{submitting ? "Submitting..." : "Submit Application"}</span>

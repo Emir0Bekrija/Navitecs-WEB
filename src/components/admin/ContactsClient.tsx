@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -9,32 +9,297 @@ import {
   Phone,
   Building2,
   Reply,
+  Star,
+  X,
+  Save,
+  RefreshCw,
+  Bell,
 } from "lucide-react";
-import type { ContactSubmission } from "@/types/index";
+import type { ContactSubmission, CompanyContactRanking } from "@/types/index";
 import ReplyModal from "./ReplyModal";
+import { useAdminStream } from "@/hooks/useAdminStream";
 
+const PROJECT_TYPES = [
+  "Residential",
+  "Commercial",
+  "Industrial",
+  "Infrastructure",
+  "Interior Design",
+  "Urban Planning",
+  "Other",
+];
+
+// ── Score picker ──────────────────────────────────────────────────────────────
+function ScorePicker({
+  value,
+  onChange,
+}: {
+  value: number | null;
+  onChange: (v: number | null) => void;
+}) {
+  return (
+    <div className="flex items-center gap-1 flex-wrap">
+      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+        <button
+          key={n}
+          type="button"
+          onClick={() => onChange(value === n ? null : n)}
+          className={`w-7 h-7 rounded-md text-xs font-semibold transition-all ${
+            value === n
+              ? "bg-[#00FF9C] text-black"
+              : "bg-white/5 text-gray-400 hover:bg-white/10"
+          }`}
+        >
+          {n}
+        </button>
+      ))}
+      {value !== null && (
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          className="text-gray-600 hover:text-gray-400 ml-1"
+          title="Clear score"
+        >
+          <X size={12} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ── Company contact ranking panel ─────────────────────────────────────────────
+function CompanyContactPanel({
+  contact,
+  onSaved,
+}: {
+  contact: CompanyContactRanking;
+  onSaved: (updated: CompanyContactRanking) => void;
+}) {
+  const [score, setScore] = useState<number | null>(contact.score);
+  const [comments, setComments] = useState(contact.comments ?? "");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const prevId = useRef(contact.id);
+  useEffect(() => {
+    if (prevId.current !== contact.id) {
+      setScore(contact.score);
+      setComments(contact.comments ?? "");
+      prevId.current = contact.id;
+    }
+  }, [contact]);
+
+  async function handleSave() {
+    setSaving(true);
+    const res = await fetch(`/api/admin/company-contacts/${contact.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ score, comments: comments || null }),
+    });
+    setSaving(false);
+    if (res.ok) {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+      onSaved({ ...contact, score, comments: comments || null });
+    }
+  }
+
+  return (
+    <div className="border border-[#00FF9C]/20 rounded-xl p-4 space-y-3 bg-[#00FF9C]/3">
+      <div className="flex items-center gap-2">
+        <Star size={14} className="text-[#00FF9C]" />
+        <span className="text-xs font-semibold text-[#00FF9C] uppercase tracking-wider">
+          Lead Ranking
+        </span>
+      </div>
+
+      <div>
+        <p className="text-xs text-gray-500 mb-1.5">Score (1–10)</p>
+        <ScorePicker value={score} onChange={setScore} />
+      </div>
+
+      <div>
+        <label className="text-xs text-gray-500 block mb-1">Internal notes</label>
+        <textarea
+          value={comments}
+          onChange={(e) => setComments(e.target.value)}
+          rows={2}
+          placeholder="Private comments visible only to admins"
+          className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 resize-none focus:outline-none focus:border-white/20"
+        />
+      </div>
+
+      <button
+        onClick={handleSave}
+        disabled={saving}
+        className="flex items-center gap-2 px-4 py-2 bg-[#00FF9C]/10 border border-[#00FF9C]/25 text-[#00FF9C] rounded-lg text-sm hover:bg-[#00FF9C]/20 transition-all disabled:opacity-50"
+      >
+        <Save size={13} />
+        {saving ? "Saving…" : saved ? "Saved!" : "Save ranking"}
+      </button>
+    </div>
+  );
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
 export default function ContactsClient() {
   const [contacts, setContacts] = useState<ContactSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [replyTarget, setReplyTarget] = useState<{ email: string; name: string; projectType: string } | null>(null);
 
+  // Filters
+  const [emailFilter, setEmailFilter] = useState("");
+  const [nameFilter, setNameFilter] = useState("");
+  const [projectTypeFilter, setProjectTypeFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+
+  // Real-time notifications
+  const [newCount, setNewCount] = useState(0);
+  const onNewContact = useCallback(() => setNewCount((n) => n + 1), []);
+  useAdminStream("new_contact", onNewContact);
+
+  const fetchContacts = useCallback(async () => {
+    setLoading(true);
+    const params = new URLSearchParams();
+    if (emailFilter) params.set("email", emailFilter);
+    if (nameFilter) params.set("name", nameFilter);
+    if (projectTypeFilter) params.set("projectType", projectTypeFilter);
+    if (dateFrom) params.set("dateFrom", dateFrom);
+    if (dateTo) params.set("dateTo", dateTo);
+    const qs = params.toString();
+    const data = await fetch(`/api/admin/contacts${qs ? `?${qs}` : ""}`).then((r) => r.json());
+    setContacts(data);
+    setLoading(false);
+  }, [emailFilter, nameFilter, projectTypeFilter, dateFrom, dateTo]);
+
   useEffect(() => {
-    fetch("/api/admin/contacts")
-      .then((r) => r.json())
-      .then((data: ContactSubmission[]) => {
-        setContacts(data);
-        setLoading(false);
-      });
-  }, []);
+    fetchContacts();
+  }, [fetchContacts]);
+
+  function clearFilters() {
+    setEmailFilter("");
+    setNameFilter("");
+    setProjectTypeFilter("");
+    setDateFrom("");
+    setDateTo("");
+  }
+
+  function loadNew() {
+    setNewCount(0);
+    setExpandedId(null);
+    fetchContacts();
+  }
+
+  const hasFilters = emailFilter || nameFilter || projectTypeFilter || dateFrom || dateTo;
+
+  function handleCompanyContactSaved(contactId: string, updated: CompanyContactRanking) {
+    setContacts((prev) =>
+      prev.map((c) => (c.id === contactId ? { ...c, companyContact: updated } : c))
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
         <h2 className="text-2xl font-bold">Contact Submissions</h2>
         <p className="text-gray-400 text-sm mt-0.5">
-          {contacts.length} total submission{contacts.length !== 1 ? "s" : ""}
+          {contacts.length} result{contacts.length !== 1 ? "s" : ""}
+          {hasFilters ? " (filtered)" : ""}
         </p>
+      </div>
+
+      {/* New items banner */}
+      {newCount > 0 && (
+        <button
+          onClick={loadNew}
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#00FF9C]/10 border border-[#00FF9C]/30 text-[#00FF9C] rounded-2xl text-sm font-medium hover:bg-[#00FF9C]/20 transition-all animate-pulse"
+        >
+          <Bell size={15} />
+          {newCount} new contact{newCount !== 1 ? "s" : ""} received — click to load
+        </button>
+      )}
+
+      {/* Filter bar */}
+      <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-4 space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label className="text-xs text-gray-500 block mb-1">Name</label>
+            <input
+              type="text"
+              value={nameFilter}
+              onChange={(e) => setNameFilter(e.target.value)}
+              placeholder="Search by name…"
+              className="w-full bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#00FF9C]/50"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-gray-500 block mb-1">Email</label>
+            <input
+              type="text"
+              value={emailFilter}
+              onChange={(e) => setEmailFilter(e.target.value)}
+              placeholder="Search by email…"
+              className="w-full bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#00FF9C]/50"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-gray-500 block mb-1">Project type</label>
+            <select
+              value={projectTypeFilter}
+              onChange={(e) => setProjectTypeFilter(e.target.value)}
+              className="w-full bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00FF9C]/50 appearance-none"
+            >
+              <option value="">All types</option>
+              {PROJECT_TYPES.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="flex items-end gap-3 flex-wrap">
+          <div className="flex gap-2">
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">From</label>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00FF9C]/50 [color-scheme:dark]"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">To</label>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00FF9C]/50 [color-scheme:dark]"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2 pb-0.5">
+            <button
+              onClick={fetchContacts}
+              className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-400 hover:text-white border border-white/10 rounded-lg transition-colors"
+              title="Refresh"
+            >
+              <RefreshCw size={13} />
+            </button>
+            {hasFilters && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-400 hover:text-white border border-white/10 rounded-lg transition-colors"
+              >
+                <X size={13} />
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {loading ? (
@@ -46,12 +311,14 @@ export default function ContactsClient() {
       ) : contacts.length === 0 ? (
         <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-12 text-center">
           <MessageSquare className="mx-auto text-gray-600 mb-4" size={40} />
-          <p className="text-gray-400">No contact submissions yet</p>
+          <p className="text-gray-400">{hasFilters ? "No contacts match your filters" : "No contact submissions yet"}</p>
         </div>
       ) : (
         <div className="space-y-3">
           {contacts.map((contact) => {
             const isExpanded = expandedId === contact.id;
+            const score = contact.companyContact?.score;
+
             return (
               <div
                 key={contact.id}
@@ -65,19 +332,24 @@ export default function ContactsClient() {
                     {contact.name[0]}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-white">{contact.name}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-medium text-white">{contact.name}</p>
+                      {score !== null && score !== undefined && (
+                        <span className="flex items-center gap-1 text-xs text-[#00FF9C] bg-[#00FF9C]/10 border border-[#00FF9C]/20 px-1.5 py-0.5 rounded-full">
+                          <Star size={9} fill="currentColor" />
+                          {score}/10
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-400 truncate">
                       {contact.company
                         ? `${contact.company} · ${contact.projectType || contact.email}`
                         : contact.projectType || contact.email}
                     </p>
                   </div>
-                  <div className="text-xs text-gray-500 shrink-0 hidden sm:block">
-                    {new Date(contact.submittedAt).toLocaleDateString("en-GB", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
+                  <div className="text-xs text-gray-500 shrink-0 hidden sm:block text-right">
+                    <div>{new Date(contact.submittedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</div>
+                    <div>{new Date(contact.submittedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</div>
                   </div>
                   {isExpanded ? (
                     <ChevronUp size={16} className="text-gray-400 shrink-0" />
@@ -114,6 +386,12 @@ export default function ContactsClient() {
                           {contact.projectType}
                         </div>
                       )}
+                      {contact.service && (
+                        <div className="text-gray-300">
+                          <span className="text-gray-500">Service: </span>
+                          {contact.service}
+                        </div>
+                      )}
                     </div>
 
                     <div>
@@ -124,6 +402,14 @@ export default function ContactsClient() {
                         {contact.message}
                       </p>
                     </div>
+
+                    {/* Company contact ranking */}
+                    {contact.companyContact && (
+                      <CompanyContactPanel
+                        contact={contact.companyContact}
+                        onSaved={(updated) => handleCompanyContactSaved(contact.id, updated)}
+                      />
+                    )}
 
                     <div className="flex items-center gap-3 pt-1">
                       <button

@@ -1,8 +1,21 @@
 import { NextResponse } from "next/server";
-import { getJobs } from "@/lib/data";
+import { prisma } from "@/lib/db";
 
-// GET /api/jobs — public endpoint: returns only active jobs
+// GET /api/jobs — public: returns only active jobs, ordered
 export async function GET() {
-  const jobs = await getJobs();
-  return NextResponse.json(jobs.filter((j) => j.active));
+  const jobs = await prisma.job.findMany({
+    where: { active: true },
+    orderBy: { order: "asc" },
+    select: {
+      id: true,
+      title: true,
+      department: true,
+      location: true,
+      type: true,
+      description: true,
+      active: true,
+      createdAt: true,
+    },
+  });
+  return NextResponse.json(jobs);
 }
