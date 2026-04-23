@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   Briefcase,
@@ -21,25 +22,71 @@ import {
 } from "lucide-react";
 
 const BASE_NAV = [
-  { href: "/navitecs-control-admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/navitecs-control-admin/jobs", label: "Job Postings", icon: Briefcase },
-  { href: "/navitecs-control-admin/applications", label: "Applications", icon: FileText },
-  { href: "/navitecs-control-admin/applicants", label: "Applicants", icon: Users },
-  { href: "/navitecs-control-admin/contacts", label: "Contacts", icon: MessageSquare },
-  { href: "/navitecs-control-admin/projects", label: "Projects", icon: FolderKanban },
-  { href: "/navitecs-control-admin/settings", label: "Settings", icon: Settings },
+  {
+    href: "/navitecs-control-admin/dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    href: "/navitecs-control-admin/jobs",
+    label: "Job Postings",
+    icon: Briefcase,
+  },
+  {
+    href: "/navitecs-control-admin/applications",
+    label: "Applications",
+    icon: FileText,
+  },
+  {
+    href: "/navitecs-control-admin/applicants",
+    label: "Applicants",
+    icon: Users,
+  },
+  {
+    href: "/navitecs-control-admin/contacts",
+    label: "Contacts",
+    icon: MessageSquare,
+  },
+  {
+    href: "/navitecs-control-admin/projects",
+    label: "Projects",
+    icon: FolderKanban,
+  },
+  {
+    href: "/navitecs-control-admin/settings",
+    label: "Settings",
+    icon: Settings,
+  },
 ];
 
 const SUPERADMIN_NAV = [
-  { href: "/navitecs-control-admin/sessions", label: "Sessions", icon: MonitorDot },
+  {
+    href: "/navitecs-control-admin/sessions",
+    label: "Sessions",
+    icon: MonitorDot,
+  },
   { href: "/navitecs-control-admin/users", label: "Users", icon: ShieldCheck },
-  { href: "/navitecs-control-admin/audit-log", label: "Audit Log", icon: ScrollText },
+  {
+    href: "/navitecs-control-admin/audit-log",
+    label: "Audit Log",
+    icon: ScrollText,
+  },
 ];
 
 type Me = { username: string; role: string };
 
-function NavLink({ href, label, icon: Icon, active, onClick }: {
-  href: string; label: string; icon: React.ElementType; active: boolean; onClick: () => void;
+function NavLink({
+  href,
+  label,
+  icon: Icon,
+  active,
+  onClick,
+}: {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  active: boolean;
+  onClick: () => void;
 }) {
   return (
     <Link
@@ -58,7 +105,11 @@ function NavLink({ href, label, icon: Icon, active, onClick }: {
   );
 }
 
-export default function AdminShell({ children }: { children: React.ReactNode }) {
+export default function AdminShell({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -70,14 +121,21 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     window.fetch = async (...args: Parameters<typeof fetch>) => {
       const res = await original(...args);
       if (res.status === 401) {
-        const url = typeof args[0] === "string" ? args[0] : args[0] instanceof URL ? args[0].toString() : "";
+        const url =
+          typeof args[0] === "string"
+            ? args[0]
+            : args[0] instanceof URL
+              ? args[0].toString()
+              : "";
         if (!url.includes("/api/auth/login")) {
           router.push("/navitecs-control-admin/login?expired=1");
         }
       }
       return res;
     };
-    return () => { window.fetch = original; };
+    return () => {
+      window.fetch = original;
+    };
   }, [router]);
 
   useEffect(() => {
@@ -89,7 +147,9 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         }
         return r.ok ? r.json() : null;
       })
-      .then((data: Me | null) => { if (data) setMe(data); })
+      .then((data: Me | null) => {
+        if (data) setMe(data);
+      })
       .catch(() => {});
   }, [router]);
 
@@ -102,12 +162,17 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   const isSuperAdmin = me?.role === "superadmin";
 
   const allNavItems = [...BASE_NAV, ...(isSuperAdmin ? SUPERADMIN_NAV : [])];
-  const currentPage = allNavItems.find((item) => pathname.startsWith(item.href))?.label ?? "Admin";
+  const currentPage =
+    allNavItems.find((item) => pathname.startsWith(item.href))?.label ??
+    "Admin";
 
   return (
     <div className="flex h-screen bg-black text-white overflow-hidden">
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/60 z-20 lg:hidden" onClick={close} />
+        <div
+          className="fixed inset-0 bg-black/60 z-20 lg:hidden"
+          onClick={close}
+        />
       )}
 
       <aside
@@ -122,9 +187,14 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           </div>
           <div className="min-w-0">
             <p className="font-bold text-sm">NAVITECS</p>
-            <p className="text-xs text-gray-500 truncate">{me ? me.username : "…"}</p>
+            <p className="text-xs text-gray-500 truncate">
+              {me ? me.username : "…"}
+            </p>
           </div>
-          <button className="ml-auto lg:hidden text-gray-400 hover:text-white" onClick={close}>
+          <button
+            className="ml-auto lg:hidden text-gray-400 hover:text-white"
+            onClick={close}
+          >
             <X size={18} />
           </button>
         </div>
@@ -132,16 +202,28 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {BASE_NAV.map((item) => (
-            <NavLink key={item.href} {...item} active={pathname.startsWith(item.href)} onClick={close} />
+            <NavLink
+              key={item.href}
+              {...item}
+              active={pathname.startsWith(item.href)}
+              onClick={close}
+            />
           ))}
 
           {isSuperAdmin && (
             <>
               <div className="pt-3 pb-1 px-3">
-                <p className="text-xs text-gray-600 uppercase tracking-wider">Security</p>
+                <p className="text-xs text-gray-600 uppercase tracking-wider">
+                  Security
+                </p>
               </div>
               {SUPERADMIN_NAV.map((item) => (
-                <NavLink key={item.href} {...item} active={pathname.startsWith(item.href)} onClick={close} />
+                <NavLink
+                  key={item.href}
+                  {...item}
+                  active={pathname.startsWith(item.href)}
+                  onClick={close}
+                />
               ))}
             </>
           )}
@@ -170,7 +252,10 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="flex items-center gap-4 px-6 h-14 border-b border-white/10 bg-[#0a0a0a] shrink-0">
-          <button className="lg:hidden text-gray-400 hover:text-white" onClick={() => setSidebarOpen(true)}>
+          <button
+            className="lg:hidden text-gray-400 hover:text-white"
+            onClick={() => setSidebarOpen(true)}
+          >
             <Menu size={20} />
           </button>
           <h1 className="text-sm font-semibold text-gray-300">{currentPage}</h1>

@@ -14,9 +14,10 @@ import {
   Save,
   RefreshCw,
   Bell,
+  HelpCircle,
 } from "lucide-react";
 import type { ContactSubmission, CompanyContactRanking } from "@/types/index";
-import ReplyModal from "./ReplyModal";
+import ThunderbirdSetupModal from "./ThunderbirdSetupModal";
 import { useAdminStream } from "@/hooks/useAdminStream";
 
 const PROJECT_TYPES = [
@@ -156,11 +157,7 @@ export default function ContactsClient() {
   const [contacts, setContacts] = useState<ContactSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [replyTarget, setReplyTarget] = useState<{
-    email: string;
-    name: string;
-    projectType: string;
-  } | null>(null);
+  const [showMailSetup, setShowMailSetup] = useState(false);
 
   // Filters
   const [emailFilter, setEmailFilter] = useState("");
@@ -224,12 +221,21 @@ export default function ContactsClient() {
 
   return (
     <div className="space-y-6 max-w-5xl">
-      <div>
-        <h2 className="text-2xl font-bold">Contact Submissions</h2>
-        <p className="text-gray-400 text-sm mt-0.5">
-          {contacts.length} result{contacts.length !== 1 ? "s" : ""}
-          {hasFilters ? " (filtered)" : ""}
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold">Contact Submissions</h2>
+          <p className="text-gray-400 text-sm mt-0.5">
+            {contacts.length} result{contacts.length !== 1 ? "s" : ""}
+            {hasFilters ? " (filtered)" : ""}
+          </p>
+        </div>
+        <button
+          onClick={() => setShowMailSetup(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-400 border border-white/10 rounded-lg hover:text-white hover:border-white/25 transition-colors shrink-0 mt-1"
+        >
+          <HelpCircle size={13} />
+          Mail client setup
+        </button>
       </div>
 
       {/* New items banner */}
@@ -485,19 +491,13 @@ export default function ContactsClient() {
                     )}
 
                     <div className="flex items-center gap-3 pt-1">
-                      <button
-                        onClick={() =>
-                          setReplyTarget({
-                            email: contact.email,
-                            name: contact.name,
-                            projectType: contact.projectType,
-                          })
-                        }
+                      <a
+                        href={`mailto:${encodeURIComponent(contact.email)}?subject=${encodeURIComponent(`Re: ${contact.projectType ? `${contact.projectType} inquiry` : "Your inquiry"}`)}`}
                         className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#00FF9C]/15 to-[#00AEEF]/15 border border-[#00FF9C]/30 text-white rounded-lg text-sm hover:from-[#00FF9C]/25 hover:to-[#00AEEF]/25 transition-all"
                       >
                         <Reply size={14} />
                         Reply via Email
-                      </button>
+                      </a>
                       <p className="text-xs text-gray-600">
                         {new Date(contact.submittedAt).toLocaleString("en-GB", {
                           dateStyle: "long",
@@ -513,13 +513,7 @@ export default function ContactsClient() {
         </div>
       )}
 
-      {replyTarget && (
-        <ReplyModal
-          to={replyTarget.email}
-          defaultSubject={`Re: ${replyTarget.projectType ? `${replyTarget.projectType} inquiry` : "Your inquiry"}`}
-          onClose={() => setReplyTarget(null)}
-        />
-      )}
+      {showMailSetup && <ThunderbirdSetupModal onClose={() => setShowMailSetup(false)} />}
     </div>
   );
 }

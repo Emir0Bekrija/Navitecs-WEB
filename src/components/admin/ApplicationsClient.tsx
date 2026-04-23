@@ -20,6 +20,7 @@ import {
   Bell,
   Trash2,
   AlertTriangle,
+  HelpCircle,
 } from "lucide-react";
 import type {
   GroupedApplicant,
@@ -27,7 +28,7 @@ import type {
   ApplicantRanking,
   Job,
 } from "@/types/index";
-import ReplyModal from "./ReplyModal";
+import ThunderbirdSetupModal from "./ThunderbirdSetupModal";
 import { useAdminStream } from "@/hooks/useAdminStream";
 
 type PagedResponse = {
@@ -263,19 +264,19 @@ const NOTICE_LABELS: Record<string, string> = {
   "1-month": "1 month",
   "2-months": "2 months",
   "3-months": "3 months",
-  "other": "Other / flexible",
+  other: "Other / flexible",
 };
 
 // ── Single application card ───────────────────────────────────────────────────
 function ApplicationCard({
   app,
   applicantName,
-  onReply,
+  applicantEmail,
   onDeleteClick,
 }: {
   app: ApplicationEntry;
   applicantName: string;
-  onReply: (email?: string) => void;
+  applicantEmail: string;
   onDeleteClick: () => void;
 }) {
   const roleLabel = app.job?.title ?? app.role;
@@ -332,23 +333,33 @@ function ApplicationCard({
       </div>
 
       {/* Applicant details grid */}
-      {(app.currentlyEmployed !== null && app.currentlyEmployed !== undefined) ||
-       app.yearsOfExperience || app.location || app.bimSoftware ? (
+      {(app.currentlyEmployed !== null &&
+        app.currentlyEmployed !== undefined) ||
+      app.yearsOfExperience ||
+      app.location ||
+      app.bimSoftware ? (
         <div className="bg-black/20 border border-white/6 rounded-xl p-3.5 space-y-3">
           {/* Employment + experience + location */}
-          {((app.currentlyEmployed !== null && app.currentlyEmployed !== undefined) ||
-            app.yearsOfExperience || app.location) && (
+          {((app.currentlyEmployed !== null &&
+            app.currentlyEmployed !== undefined) ||
+            app.yearsOfExperience ||
+            app.location) && (
             <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-              {app.currentlyEmployed !== null && app.currentlyEmployed !== undefined && (
-                <div>
-                  <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-0.5">
-                    Employment Status
-                  </p>
-                  <p className={`text-sm font-medium ${app.currentlyEmployed ? "text-amber-400" : "text-[#00FF9C]"}`}>
-                    {app.currentlyEmployed ? "Currently employed" : "Available immediately"}
-                  </p>
-                </div>
-              )}
+              {app.currentlyEmployed !== null &&
+                app.currentlyEmployed !== undefined && (
+                  <div>
+                    <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-0.5">
+                      Employment Status
+                    </p>
+                    <p
+                      className={`text-sm font-medium ${app.currentlyEmployed ? "text-amber-400" : "text-[#00FF9C]"}`}
+                    >
+                      {app.currentlyEmployed
+                        ? "Currently employed"
+                        : "Available immediately"}
+                    </p>
+                  </div>
+                )}
               {app.currentlyEmployed && app.noticePeriod && (
                 <div>
                   <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-0.5">
@@ -365,7 +376,8 @@ function ApplicationCard({
                     Work Experience
                   </p>
                   <p className="text-sm text-gray-200">
-                    {EXPERIENCE_LABELS[app.yearsOfExperience] ?? app.yearsOfExperience}
+                    {EXPERIENCE_LABELS[app.yearsOfExperience] ??
+                      app.yearsOfExperience}
                   </p>
                 </div>
               )}
@@ -383,22 +395,28 @@ function ApplicationCard({
           {/* Skills / proficiency */}
           {app.bimSoftware && (
             <div>
-              {((app.currentlyEmployed !== null && app.currentlyEmployed !== undefined) ||
-                app.yearsOfExperience || app.location) && (
+              {((app.currentlyEmployed !== null &&
+                app.currentlyEmployed !== undefined) ||
+                app.yearsOfExperience ||
+                app.location) && (
                 <div className="border-t border-white/6 mb-3" />
               )}
               <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1.5">
                 Skills & Proficiency
               </p>
               <div className="flex flex-wrap gap-1.5">
-                {app.bimSoftware.split(",").map((s) => s.trim()).filter(Boolean).map((tool) => (
-                  <span
-                    key={tool}
-                    className="px-2 py-0.5 rounded-md text-xs bg-[#00AEEF]/10 border border-[#00AEEF]/20 text-[#00AEEF]"
-                  >
-                    {tool}
-                  </span>
-                ))}
+                {app.bimSoftware
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+                  .map((tool) => (
+                    <span
+                      key={tool}
+                      className="px-2 py-0.5 rounded-md text-xs bg-[#00AEEF]/10 border border-[#00AEEF]/20 text-[#00AEEF]"
+                    >
+                      {tool}
+                    </span>
+                  ))}
               </div>
             </div>
           )}
@@ -432,13 +450,13 @@ function ApplicationCard({
 
       {/* Actions */}
       <div className="flex items-center gap-2 pt-1">
-        <button
-          onClick={() => onReply()}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-[#00AEEF]/15 to-[#00FF9C]/15 border border-[#00AEEF]/30 text-white rounded-lg text-xs hover:from-[#00AEEF]/25 hover:to-[#00FF9C]/25 transition-all"
+        <a
+          href={`mailto:${encodeURIComponent(applicantEmail)}?subject=${encodeURIComponent(`Re: Application for ${roleLabel}`)}`}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#00FF9C]/15 to-[#00AEEF]/15 border border-[#00FF9C]/30 text-white rounded-lg text-sm hover:from-[#00FF9C]/25 hover:to-[#00AEEF]/25 transition-all"
         >
-          <Reply size={13} />
-          Reply
-        </button>
+          <Reply size={14} />
+          Reply via Email
+        </a>
         <button
           onClick={onDeleteClick}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/8 border border-red-500/25 text-red-400 rounded-lg text-xs hover:bg-red-500/18 transition-all ml-auto"
@@ -529,11 +547,7 @@ export default function ApplicationsClient() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [replyTarget, setReplyTarget] = useState<{
-    email: string;
-    name: string;
-    role: string;
-  } | null>(null);
+  const [showMailSetup, setShowMailSetup] = useState(false);
 
   // Delete confirmation state
   const [deleteTarget, setDeleteTarget] = useState<{
@@ -687,13 +701,22 @@ export default function ApplicationsClient() {
 
   return (
     <div className="space-y-6 max-w-5xl">
-      <div>
-        <h2 className="text-2xl font-bold">Applications</h2>
-        <p className="text-gray-400 text-sm mt-0.5">
-          {result
-            ? `${result.total} applicant${result.total !== 1 ? "s" : ""} · showing ${applicants.length}${hasFilters ? " (filtered)" : ""}`
-            : "Loading…"}
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold">Applications</h2>
+          <p className="text-gray-400 text-sm mt-0.5">
+            {result
+              ? `${result.total} applicant${result.total !== 1 ? "s" : ""} · showing ${applicants.length}${hasFilters ? " (filtered)" : ""}`
+              : "Loading…"}
+          </p>
+        </div>
+        <button
+          onClick={() => setShowMailSetup(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-400 border border-white/10 rounded-lg hover:text-white hover:border-white/25 transition-colors shrink-0 mt-1"
+        >
+          <HelpCircle size={13} />
+          Mail client setup
+        </button>
       </div>
 
       {/* New items banner */}
@@ -713,7 +736,9 @@ export default function ApplicationsClient() {
         {/* Row 1: job + score dropdowns */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label className="text-xs text-gray-500 block mb-1">Job posting</label>
+            <label className="text-xs text-gray-500 block mb-1">
+              Job posting
+            </label>
             <select
               value={jobFilter}
               onChange={(e) => setJobFilter(e.target.value)}
@@ -729,7 +754,9 @@ export default function ApplicationsClient() {
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 block mb-1">Min score</label>
+            <label className="text-xs text-gray-500 block mb-1">
+              Min score
+            </label>
             <select
               value={minScore}
               onChange={(e) => setMinScore(e.target.value)}
@@ -745,7 +772,9 @@ export default function ApplicationsClient() {
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 block mb-1">Score status</label>
+            <label className="text-xs text-gray-500 block mb-1">
+              Score status
+            </label>
             <select
               value={hasScore}
               onChange={(e) => setHasScore(e.target.value)}
@@ -942,13 +971,7 @@ export default function ApplicationsClient() {
                             key={app.id}
                             app={app}
                             applicantName={fullName}
-                            onReply={() =>
-                              setReplyTarget({
-                                email: applicant.email,
-                                name: fullName,
-                                role: app.job?.title ?? app.role,
-                              })
-                            }
+                            applicantEmail={applicant.email}
                             onDeleteClick={() =>
                               setDeleteTarget({
                                 appId: app.id,
@@ -979,13 +1002,8 @@ export default function ApplicationsClient() {
         </>
       )}
 
-      {/* Reply modal */}
-      {replyTarget && (
-        <ReplyModal
-          to={replyTarget.email}
-          defaultSubject={`Re: Application for ${replyTarget.role}`}
-          onClose={() => setReplyTarget(null)}
-        />
+      {showMailSetup && (
+        <ThunderbirdSetupModal onClose={() => setShowMailSetup(false)} />
       )}
 
       {/* Delete confirmation dialog */}

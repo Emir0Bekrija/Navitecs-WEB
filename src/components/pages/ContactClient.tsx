@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { useState } from "react";
-import { Mail, MapPin, Send, CheckCircle, Link } from "lucide-react";
+import { Mail, MapPin, Send, CheckCircle } from "lucide-react";
 
 const PROJECT_SERVICES = [
   "Structural Analysis",
@@ -16,7 +16,8 @@ export default function Contact() {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [emailError, setEmailError] = useState<string | null>(null);
+  const [validationBanner, setValidationBanner] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -28,23 +29,59 @@ export default function Contact() {
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
 
   function toggleService(s: string) {
-    setSelectedServices((prev) =>
-      prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
-    );
+    setSelectedServices((prev) => {
+      const next = prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s];
+      if (next.length > 0) setErrors((e) => ({ ...e, services: "" }));
+      return next;
+    });
+  }
+
+  function validateField(name: string, value: string): string {
+    switch (name) {
+      case "name": return value.trim() ? "" : "Name is required.";
+      case "email":
+        if (!value.trim()) return "Email is required.";
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? "" : "Please enter a valid email address.";
+      case "company": return value.trim() ? "" : "Company is required.";
+      case "phone":
+        if (!value.trim()) return "Phone number is required.";
+        return /^\+?[\d\s\-(). ]{7,20}$/.test(value.trim()) ? "" : "Please enter a valid phone number.";
+      case "projectType": return value ? "" : "Please select a project type.";
+      case "message": return value.trim() ? "" : "Project details are required.";
+      default: return "";
+    }
+  }
+
+  function handleBlur(
+    e: React.FocusEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) {
+    const { name, value } = e.target;
+    const msg = validateField(name, value);
+    setErrors((prev) => ({ ...prev, [name]: msg }));
   }
 
   const cardClass =
     "rounded-2xl border border-white/30 bg-black/70 p-6 transition-all duration-300 hover:bg-black hover:border-[#00AEEF]";
 
-  function validateEmail(value: string): string | null {
-    if (!value) return "Email is required.";
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? null : "Please enter a valid email address.";
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const emailErr = validateEmail(formData.email);
-    if (emailErr) { setEmailError(emailErr); return; }
+    const requiredFields = ["name", "email", "company", "phone", "projectType", "message"] as const;
+    const newErrors: Record<string, string> = {};
+    for (const field of requiredFields) {
+      const msg = validateField(field, formData[field]);
+      if (msg) newErrors[field] = msg;
+    }
+    if (selectedServices.length === 0) {
+      newErrors.services = "Please select at least one service.";
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setValidationBanner(true);
+      return;
+    }
+    setValidationBanner(false);
     setSubmitError(null);
     setSubmitting(true);
 
@@ -60,8 +97,12 @@ export default function Contact() {
     setSubmitting(false);
 
     if (!res.ok) {
-      const json = await res.json().catch(() => ({})) as { error?: string };
-      setSubmitError(typeof json.error === "string" ? json.error : "Something went wrong. Please try again.");
+      const json = (await res.json().catch(() => ({}))) as { error?: string };
+      setSubmitError(
+        typeof json.error === "string"
+          ? json.error
+          : "Something went wrong. Please try again.",
+      );
       return;
     }
 
@@ -85,10 +126,10 @@ export default function Contact() {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >,
   ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (errors[name])
+      setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
   };
 
   const contactInfo = [
@@ -204,9 +245,15 @@ export default function Contact() {
                         required
                         value={formData.name}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-black/70 hover:bg-black border border-white/30 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white"
+                        onBlur={handleBlur}
+                        className={`w-full px-4 py-3 bg-black/70 hover:bg-black border rounded-lg focus:outline-none transition-colors text-white ${errors.name ? "border-red-500/70 focus:border-red-500" : "border-white/30 focus:border-[#00AEEF]"}`}
                         placeholder="Your name"
                       />
+                      {errors.name && (
+                        <p className="mt-1.5 text-xs text-red-400">
+                          {errors.name}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label
@@ -221,12 +268,16 @@ export default function Contact() {
                         name="email"
                         required
                         value={formData.email}
-                        onChange={(e) => { handleChange(e); if (emailError) setEmailError(validateEmail(e.target.value)); }}
-                        onBlur={(e) => setEmailError(validateEmail(e.target.value))}
-                        className={`w-full px-4 py-3 bg-black/70 hover:bg-black border rounded-lg focus:outline-none transition-colors text-white ${emailError ? "border-red-500/70 focus:border-red-500" : "border-white/30 focus:border-[#00AEEF]"}`}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        className={`w-full px-4 py-3 bg-black/70 hover:bg-black border rounded-lg focus:outline-none transition-colors text-white ${errors.email ? "border-red-500/70 focus:border-red-500" : "border-white/30 focus:border-[#00AEEF]"}`}
                         placeholder="your@email.com"
                       />
-                      {emailError && <p className="mt-1.5 text-xs text-red-400">{emailError}</p>}
+                      {errors.email && (
+                        <p className="mt-1.5 text-xs text-red-400">
+                          {errors.email}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -236,7 +287,7 @@ export default function Contact() {
                         htmlFor="company"
                         className="block text-sm font-medium mb-2"
                       >
-                        Company
+                        Company *
                       </label>
                       <input
                         type="text"
@@ -244,16 +295,18 @@ export default function Contact() {
                         name="company"
                         value={formData.company}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-black/70 hover:bg-black border border-white/30 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white"
+                        onBlur={handleBlur}
+                        className={`w-full px-4 py-3 bg-black/70 hover:bg-black border rounded-lg focus:outline-none transition-colors text-white ${errors.company ? "border-red-500/70 focus:border-red-500" : "border-white/30 focus:border-[#00AEEF]"}`}
                         placeholder="Company name"
                       />
+                      {errors.company && <p className="mt-1.5 text-xs text-red-400">{errors.company}</p>}
                     </div>
                     <div>
                       <label
                         htmlFor="phone"
                         className="block text-sm font-medium mb-2"
                       >
-                        Phone
+                        Phone *
                       </label>
                       <input
                         type="tel"
@@ -261,9 +314,11 @@ export default function Contact() {
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-black/70 hover:bg-black border border-white/30 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white"
+                        onBlur={handleBlur}
+                        className={`w-full px-4 py-3 bg-black/70 hover:bg-black border rounded-lg focus:outline-none transition-colors text-white ${errors.phone ? "border-red-500/70 focus:border-red-500" : "border-white/30 focus:border-[#00AEEF]"}`}
                         placeholder="+387 XX XXX XXX"
                       />
+                      {errors.phone && <p className="mt-1.5 text-xs text-red-400">{errors.phone}</p>}
                     </div>
                   </div>
 
@@ -272,14 +327,15 @@ export default function Contact() {
                       htmlFor="projectType"
                       className="block text-sm font-medium mb-2"
                     >
-                      Project Type
+                      Project Type *
                     </label>
                     <select
                       id="projectType"
                       name="projectType"
                       value={formData.projectType}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-black/70 hover:bg-black border border-white/30 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white"
+                      onBlur={handleBlur}
+                      className={`w-full px-4 py-3 bg-black/70 hover:bg-black border rounded-lg focus:outline-none transition-colors text-white ${errors.projectType ? "border-red-500/70 focus:border-red-500" : "border-white/30 focus:border-[#00AEEF]"}`}
                     >
                       <option value="" className="bg-[#111] text-white">
                         Select project type
@@ -318,14 +374,14 @@ export default function Contact() {
                         Other
                       </option>
                     </select>
+                    {errors.projectType && <p className="mt-1.5 text-xs text-red-400">{errors.projectType}</p>}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium mb-3">
-                      Services Required
-                      <span className="ml-2 text-xs text-gray-500 font-normal">select all that apply</span>
+                      Services Required *
                     </label>
-                    <div className="flex flex-wrap gap-2">
+                    <div className={`flex flex-wrap gap-2 p-3 rounded-lg border transition-colors ${errors.services ? "border-red-500/50" : "border-transparent"}`}>
                       {PROJECT_SERVICES.map((s) => {
                         const active = selectedServices.includes(s);
                         return (
@@ -344,6 +400,7 @@ export default function Contact() {
                         );
                       })}
                     </div>
+                    {errors.services && <p className="mt-1.5 text-xs text-red-400">{errors.services}</p>}
                   </div>
 
                   <div>
@@ -359,11 +416,23 @@ export default function Contact() {
                       required
                       value={formData.message}
                       onChange={handleChange}
+                      onBlur={handleBlur}
                       rows={6}
-                      className="w-full px-4 py-3 bg-black/70 hover:bg-black border border-white/30 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white resize-none"
+                      className={`w-full px-4 py-3 bg-black/70 hover:bg-black border rounded-lg focus:outline-none transition-colors text-white resize-none ${errors.message ? "border-red-500/70 focus:border-red-500" : "border-white/30 focus:border-[#00AEEF]"}`}
                       placeholder="Tell us about your project requirements..."
                     />
+                    {errors.message && (
+                      <p className="mt-1.5 text-xs text-red-400">
+                        {errors.message}
+                      </p>
+                    )}
                   </div>
+
+                  {validationBanner && (
+                    <p className="text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-3">
+                      Please fill in all required fields before submitting.
+                    </p>
+                  )}
 
                   {submitError && (
                     <p className="text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-3">
