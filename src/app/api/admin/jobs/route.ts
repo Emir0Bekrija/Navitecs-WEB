@@ -10,6 +10,7 @@ const JobSchema = z.object({
   location: z.string().min(1).max(100),
   type: z.string().min(1).max(50),
   description: z.string().min(1),
+  requirements: z.array(z.string().max(200)).optional().default([]),
   active: z.boolean().optional().default(true),
 });
 

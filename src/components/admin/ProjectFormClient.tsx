@@ -109,7 +109,7 @@ export default function ProjectFormClient({ projectId }: Props) {
     });
 
     if (res.ok) {
-      router.push("/admin/projects");
+      router.push("/navitecs-control-admin/projects");
     } else {
       const data = await res.json();
       setError(data.error || "Save failed");
@@ -129,7 +129,7 @@ export default function ProjectFormClient({ projectId }: Props) {
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center gap-4">
         <Link
-          href="/admin/projects"
+          href="/navitecs-control-admin/projects"
           className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
         >
           <ArrowLeft size={16} />
@@ -291,7 +291,7 @@ export default function ProjectFormClient({ projectId }: Props) {
             {saving ? "Saving..." : isEdit ? "Save Changes" : "Create Project"}
           </button>
           <Link
-            href="/admin/projects"
+            href="/navitecs-control-admin/projects"
             className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-sm font-medium hover:bg-white/10 transition-colors"
           >
             Cancel

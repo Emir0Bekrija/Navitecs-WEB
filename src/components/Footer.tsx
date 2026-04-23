@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Linkedin } from "lucide-react";
+import { Instagram } from "lucide-react";
 import logo from "./LOGO.png";
 
 export default function Footer() {
@@ -36,11 +37,21 @@ export default function Footer() {
 
             <div className="flex space-x-4">
               <a
-                href="#"
+                href="https://www.linkedin.com/company/navitecs"
                 className="p-2 bg-white/5 rounded-lg hover:bg-white/10 transition-colors group"
                 aria-label="LinkedIn"
               >
                 <Linkedin
+                  size={20}
+                  className="text-gray-400 group-hover:text-[#00AEEF] transition-colors"
+                />
+              </a>
+              <a
+                href="https://www.instagram.com/navitecs?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                className="p-2 bg-white/5 rounded-lg hover:bg-white/10 transition-colors group"
+                aria-label="Instagram"
+              >
+                <Instagram
                   size={20}
                   className="text-gray-400 group-hover:text-[#00AEEF] transition-colors"
                 />

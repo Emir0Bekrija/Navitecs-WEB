@@ -4,8 +4,19 @@ import { motion } from "motion/react";
 import { useState } from "react";
 import { Mail, MapPin, Send, CheckCircle, Link } from "lucide-react";
 
+const PROJECT_SERVICES = [
+  "Structural Analysis",
+  "Thermal Analysis",
+  "Seismic Analysis",
+  "Retrofitting",
+  "Custom Solutions",
+];
+
 export default function Contact() {
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -14,17 +25,46 @@ export default function Contact() {
     projectType: "",
     message: "",
   });
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+
+  function toggleService(s: string) {
+    setSelectedServices((prev) =>
+      prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
+    );
+  }
 
   const cardClass =
     "rounded-2xl border border-white/30 bg-black/70 p-6 transition-all duration-300 hover:bg-black hover:border-[#00AEEF]";
 
+  function validateEmail(value: string): string | null {
+    if (!value) return "Email is required.";
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? null : "Please enter a valid email address.";
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch("/api/contact", {
+    const emailErr = validateEmail(formData.email);
+    if (emailErr) { setEmailError(emailErr); return; }
+    setSubmitError(null);
+    setSubmitting(true);
+
+    const res = await fetch("/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
+      body: JSON.stringify({
+        ...formData,
+        projectServices: selectedServices.join(","),
+      }),
     });
+
+    setSubmitting(false);
+
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({})) as { error?: string };
+      setSubmitError(typeof json.error === "string" ? json.error : "Something went wrong. Please try again.");
+      return;
+    }
+
     setFormSubmitted(true);
     setTimeout(() => {
       setFormSubmitted(false);
@@ -36,6 +76,7 @@ export default function Contact() {
         projectType: "",
         message: "",
       });
+      setSelectedServices([]);
     }, 3000);
   };
 
@@ -119,7 +160,7 @@ export default function Contact() {
         </div>
       </section>
 
-      <section className="relative bg-white/5 py-24">
+      <section id="conversation" className="relative bg-white/5 py-24">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <motion.div
@@ -147,7 +188,7 @@ export default function Contact() {
                   </p>
                 </motion.div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} noValidate className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label
@@ -180,10 +221,12 @@ export default function Contact() {
                         name="email"
                         required
                         value={formData.email}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 bg-black/70 hover:bg-black border border-white/30 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white"
+                        onChange={(e) => { handleChange(e); if (emailError) setEmailError(validateEmail(e.target.value)); }}
+                        onBlur={(e) => setEmailError(validateEmail(e.target.value))}
+                        className={`w-full px-4 py-3 bg-black/70 hover:bg-black border rounded-lg focus:outline-none transition-colors text-white ${emailError ? "border-red-500/70 focus:border-red-500" : "border-white/30 focus:border-[#00AEEF]"}`}
                         placeholder="your@email.com"
                       />
+                      {emailError && <p className="mt-1.5 text-xs text-red-400">{emailError}</p>}
                     </div>
                   </div>
 
@@ -278,56 +321,29 @@ export default function Contact() {
                   </div>
 
                   <div>
-                    <label
-                      htmlFor="projectType"
-                      className="block text-sm font-medium mb-2"
-                    >
-                      Project Service
+                    <label className="block text-sm font-medium mb-3">
+                      Services Required
+                      <span className="ml-2 text-xs text-gray-500 font-normal">select all that apply</span>
                     </label>
-                    <select
-                      id="projectType"
-                      name="projectType"
-                      value={formData.projectType}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 bg-black/70 hover:bg-black border border-white/30 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white"
-                    >
-                      <option value="" className="bg-[#111] text-white">
-                        Select project type
-                      </option>
-                      <option
-                        value="residential"
-                        className="bg-[#111] text-white"
-                      >
-                        Residential
-                      </option>
-                      <option
-                        value="commercial"
-                        className="bg-[#111] text-white"
-                      >
-                        Commercial
-                      </option>
-                      <option
-                        value="infrastructure"
-                        className="bg-[#111] text-white"
-                      >
-                        Infrastructure
-                      </option>
-                      <option
-                        value="bim-consulting"
-                        className="bg-[#111] text-white"
-                      >
-                        BIM Consulting
-                      </option>
-                      <option
-                        value="mep-design"
-                        className="bg-[#111] text-white"
-                      >
-                        MEP Design
-                      </option>
-                      <option value="other" className="bg-[#111] text-white">
-                        Other
-                      </option>
-                    </select>
+                    <div className="flex flex-wrap gap-2">
+                      {PROJECT_SERVICES.map((s) => {
+                        const active = selectedServices.includes(s);
+                        return (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => toggleService(s)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
+                              active
+                                ? "bg-[#00AEEF]/15 border-[#00AEEF]/50 text-[#00AEEF]"
+                                : "bg-black/70 border-white/20 text-gray-400 hover:border-white/40 hover:text-white"
+                            }`}
+                          >
+                            {s}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   <div>
@@ -349,11 +365,18 @@ export default function Contact() {
                     />
                   </div>
 
+                  {submitError && (
+                    <p className="text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-3">
+                      {submitError}
+                    </p>
+                  )}
+
                   <button
                     type="submit"
-                    className="w-full px-6 py-4 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-lg hover:scale-105 transition-transform flex items-center justify-center space-x-2"
+                    disabled={submitting}
+                    className="w-full px-6 py-4 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-lg hover:scale-105 transition-transform flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
-                    <span>Send Message</span>
+                    <span>{submitting ? "Sending..." : "Send Message"}</span>
                     <Send size={20} />
                   </button>
                 </form>

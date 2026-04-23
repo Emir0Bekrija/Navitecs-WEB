@@ -22,6 +22,7 @@ export type JobDetails = {
   location: string;
   type: string;
   description: string;
+  requirements: string[];
 };
 
 export default async function Page({ searchParams }: Props) {
@@ -38,9 +39,10 @@ export default async function Page({ searchParams }: Props) {
         location: true,
         type: true,
         description: true,
+        requirements: true,
       },
     });
-    if (job) jobDetails = job;
+    if (job) jobDetails = { ...job, requirements: (job.requirements as string[]) ?? [] };
   }
 
   return (

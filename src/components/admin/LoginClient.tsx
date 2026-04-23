@@ -2,18 +2,19 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
-import { Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Lock, Eye, EyeOff, AlertCircle, User } from "lucide-react";
 
 export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Auth.js appends ?callbackUrl=... when redirecting; fall back to /admin/dashboard
   const callbackUrl =
-    searchParams.get("callbackUrl") ??
     searchParams.get("from") ??
-    "/admin/dashboard";
+    searchParams.get("callbackUrl") ??
+    "/navitecs-control-admin/dashboard";
 
+  const expired = searchParams.get("expired") === "1";
+
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -25,13 +26,16 @@ export default function LoginClient() {
     setLoading(true);
 
     try {
-      const result = await signIn("credentials", {
-        password,
-        redirect: false,
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
       });
 
-      if (!result || result.error) {
-        setError("Invalid credentials");
+      if (res.status === 429) {
+        setError("Too many failed attempts. Try again in 15 minutes.");
+      } else if (!res.ok) {
+        setError("Invalid username or password");
       } else {
         router.push(callbackUrl);
         router.refresh();
@@ -45,14 +49,12 @@ export default function LoginClient() {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
-      {/* Background glows */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#00AEEF]/8 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#00FF9C]/8 rounded-full blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-md">
-        {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#00AEEF] to-[#00FF9C] flex items-center justify-center mb-4">
             <Lock className="text-black" size={24} />
@@ -61,14 +63,37 @@ export default function LoginClient() {
           <p className="text-gray-400 text-sm mt-1">NAVITECS Control Panel</p>
         </div>
 
-        {/* Card */}
+        {expired && (
+          <div className="flex items-center gap-2 text-yellow-400 text-sm bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-4 py-3 mb-4">
+            <AlertCircle size={16} className="shrink-0" />
+            Your session has expired. Please sign in again.
+          </div>
+        )}
+
         <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium mb-2 text-gray-300"
-              >
+              <label htmlFor="username" className="block text-sm font-medium mb-2 text-gray-300">
+                Username
+              </label>
+              <div className="relative">
+                <input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  autoFocus
+                  autoComplete="username"
+                  placeholder="Enter username"
+                  className="w-full px-4 py-3 bg-black border border-white/15 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white pl-11"
+                />
+                <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium mb-2 text-gray-300">
                 Password
               </label>
               <div className="relative">
@@ -78,8 +103,8 @@ export default function LoginClient() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  autoFocus
-                  placeholder="Enter admin password"
+                  autoComplete="current-password"
+                  placeholder="Enter password"
                   className="w-full px-4 py-3 bg-black border border-white/15 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white pr-12"
                 />
                 <button
@@ -101,7 +126,7 @@ export default function LoginClient() {
 
             <button
               type="submit"
-              disabled={loading || !password}
+              disabled={loading || !username || !password}
               className="w-full py-3 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Verifying..." : "Sign In"}

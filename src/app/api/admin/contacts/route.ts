@@ -22,11 +22,15 @@ export async function GET(request: NextRequest) {
       ...(name ? { name: { contains: name } } : {}),
       ...(projectType ? { projectType } : {}),
       ...(service ? { service } : {}),
+      // projectServices is comma-separated; filter by substring match
+      ...(searchParams.get("projectServices")
+        ? { projectServices: { contains: searchParams.get("projectServices")! } }
+        : {}),
       ...(dateFrom || dateTo
         ? {
             submittedAt: {
               ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
-              ...(dateTo ? { lte: new Date(dateTo) } : {}),
+              ...(dateTo ? { lte: new Date(dateTo + "T23:59:59") } : {}),
             },
           }
         : {}),

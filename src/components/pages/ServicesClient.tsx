@@ -1,8 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Layers,
   Building2,
@@ -12,6 +12,136 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
+
+type Service = {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  title: string;
+  description: string;
+  image: string;
+  hoverImage: string;
+  features: string[];
+  capabilities: string[];
+};
+
+function ServiceImageBlock({
+  service,
+  index,
+  isHovered,
+  onMouseEnter,
+  onMouseLeave,
+}: {
+  service: Service;
+  index: number;
+  isHovered: boolean;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  });
+
+  // Transition happens while the element is centered in the viewport
+  const mobileProgress = useTransform(
+    scrollYProgress,
+    [0.3, 0.45, 0.49, 0.55],
+    [0, 0.05, 0.3, 1],
+  );
+
+  const ind1Width = useTransform(mobileProgress, [0, 1], ["32px", "20px"]);
+  const ind2Width = useTransform(mobileProgress, [0, 1], ["20px", "32px"]);
+  const ind1Height = useTransform(mobileProgress, [0, 1], ["3px", "2px"]);
+  const ind2Height = useTransform(mobileProgress, [0, 1], ["2px", "3px"]);
+  const ind1Alpha = useTransform(mobileProgress, [0, 1], [1, 0.3]);
+  const ind2Alpha = useTransform(mobileProgress, [0, 1], [0.3, 1]);
+
+  return (
+    <div
+      className={index % 2 === 1 ? "lg:order-1" : ""}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      <div
+        ref={ref}
+        className="relative rounded-2xl overflow-hidden border border-white/10 w-full h-[500px]"
+      >
+        <ImageWithFallback
+          src={service.image}
+          alt={service.title}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+
+        {/* Desktop: clip-path wipe on hover */}
+        <ImageWithFallback
+          src={service.hoverImage}
+          alt={`${service.title} Blueprint`}
+          className="absolute inset-0 w-full h-full object-cover z-10 hidden lg:block"
+          style={{
+            clipPath: isHovered
+              ? "inset(0 0% 0 0)"
+              : index % 2 === 0
+                ? "inset(0 0 0 100%)"
+                : "inset(0 100% 0 0)",
+            opacity: isHovered ? 1 : 0.7,
+            transition:
+              "clip-path 700ms ease-in-out, opacity 700ms ease-in-out",
+          }}
+        />
+
+        {/* Mobile: scroll-driven crossfade */}
+        <motion.div
+          className="absolute inset-0 z-10 lg:hidden"
+          style={{ opacity: mobileProgress }}
+        >
+          <ImageWithFallback
+            src={service.hoverImage}
+            alt={`${service.title} Blueprint`}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        </motion.div>
+      </div>
+
+      {/* Indicators */}
+      <div className="flex items-center gap-2 mt-3 justify-center">
+        {/* Desktop */}
+        <div
+          className="hidden lg:block rounded-full"
+          style={{
+            width: isHovered ? "20px" : "32px",
+            height: isHovered ? "2px" : "3px",
+            backgroundColor: isHovered
+              ? "rgba(255,255,255,0.3)"
+              : "rgba(255,255,255,1)",
+            transition:
+              "width 500ms ease-in-out, height 500ms ease-in-out, background-color 500ms ease-in-out",
+          }}
+        />
+        <div
+          className="hidden lg:block rounded-full"
+          style={{
+            width: isHovered ? "32px" : "20px",
+            height: isHovered ? "3px" : "2px",
+            backgroundColor: isHovered
+              ? "rgba(255,255,255,1)"
+              : "rgba(255,255,255,0.3)",
+            transition:
+              "width 500ms ease-in-out, height 500ms ease-in-out, background-color 500ms ease-in-out",
+          }}
+        />
+        {/* Mobile */}
+        <motion.div
+          className="lg:hidden rounded-full bg-white"
+          style={{ width: ind1Width, height: ind1Height, opacity: ind1Alpha }}
+        />
+        <motion.div
+          className="lg:hidden rounded-full bg-white"
+          style={{ width: ind2Width, height: ind2Height, opacity: ind2Alpha }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function ServicesClient() {
   const services = [
@@ -247,35 +377,13 @@ export default function ServicesClient() {
                   </Link>
                 </div>
 
-                <div className={index % 2 === 1 ? "lg:order-1" : ""}>
-                  <div
-                    className="relative rounded-2xl overflow-hidden border border-white/10 w-full h-[500px]"
-                    onMouseEnter={() => setHoveredIndex(index)}
-                    onMouseLeave={() => setHoveredIndex(null)}
-                  >
-                    <ImageWithFallback
-                      src={service.image}
-                      alt={service.title}
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
-                    <ImageWithFallback
-                      src={service.hoverImage}
-                      alt={`${service.title} Blueprint`}
-                      className="absolute inset-0 w-full h-full object-cover z-10"
-                      style={{
-                        clipPath:
-                          hoveredIndex === index
-                            ? "inset(0 0% 0 0)"
-                            : index % 2 === 0
-                              ? "inset(0 0 0 100%)"
-                              : "inset(0 100% 0 0)",
-                        opacity: hoveredIndex === index ? 1 : 0.7,
-                        transition:
-                          "clip-path 700ms ease-in-out, opacity 700ms ease-in-out",
-                      }}
-                    />
-                  </div>
-                </div>
+                <ServiceImageBlock
+                  service={service}
+                  index={index}
+                  isHovered={hoveredIndex === index}
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                />
               </motion.div>
             ))}
           </div>
@@ -341,7 +449,7 @@ export default function ServicesClient() {
               optimize your building development process.
             </p>
             <Link
-              href="/contact"
+              href="/contact#conversation"
               className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-lg hover:scale-105 transition-transform"
             >
               Get in Touch

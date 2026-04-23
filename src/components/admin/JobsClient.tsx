@@ -70,7 +70,7 @@ export default function JobsClient() {
           </p>
         </div>
         <Link
-          href="/admin/jobs/new"
+          href="/navitecs-control-admin/jobs/new"
           className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-xl text-sm hover:opacity-90 transition-opacity"
         >
           <Plus size={16} />
@@ -89,7 +89,7 @@ export default function JobsClient() {
           <Briefcase className="mx-auto text-gray-600 mb-4" size={40} />
           <p className="text-gray-400 mb-4">No job postings yet</p>
           <Link
-            href="/admin/jobs/new"
+            href="/navitecs-control-admin/jobs/new"
             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-lg text-sm"
           >
             <Plus size={14} />
@@ -168,7 +168,7 @@ export default function JobsClient() {
                     )}
                   </button>
                   <Link
-                    href={`/admin/jobs/${job.id}/edit`}
+                    href={`/navitecs-control-admin/jobs/${job.id}/edit`}
                     className="p-2 rounded-lg hover:bg-white/5 transition-colors text-gray-400 hover:text-[#00AEEF]"
                   >
                     <Pencil size={16} />

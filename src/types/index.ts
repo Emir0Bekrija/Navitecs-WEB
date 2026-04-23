@@ -22,6 +22,7 @@ export type Job = {
   description: string;
   active: boolean;
   createdAt: string;
+  requirements?: string[];
 };
 
 export type ApplicantRanking = {
@@ -49,6 +50,37 @@ export type Application = {
   applicant?: ApplicantRanking | null;
 };
 
+// Grouped applicant types (used by admin applications page)
+export type ApplicationEntry = {
+  id: string;
+  role: string;
+  submittedAt: string;
+  cvFileName?: string | null;
+  message?: string | null;
+  phone: string;
+  linkedin?: string | null;
+  portfolio?: string | null;
+  job?: { id: string; title: string } | null;
+  currentlyEmployed?: boolean | null;
+  noticePeriod?: string | null;
+  yearsOfExperience?: string | null;
+  location?: string | null;
+  bimSoftware?: string | null;
+};
+
+export type GroupedApplicant = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string | null;
+  score: number | null;
+  comments: string | null;
+  fitsRoles: string | null;
+  doesNotFit: string | null;
+  applications: ApplicationEntry[];
+};
+
 export type CompanyContactRanking = {
   id: string;
   score: number | null;
@@ -62,7 +94,8 @@ export type ContactSubmission = {
   company: string;
   phone: string;
   projectType: string;
-  service?: string;
+  service?: string | null;
+  projectServices?: string | null;
   message: string;
   submittedAt: string;
   companyContact?: CompanyContactRanking | null;

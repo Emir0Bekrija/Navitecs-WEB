@@ -12,6 +12,7 @@ const JobUpdateSchema = z.object({
   location: z.string().min(1).max(100).optional(),
   type: z.string().min(1).max(50).optional(),
   description: z.string().min(1).optional(),
+  requirements: z.array(z.string().max(200)).optional(),
   active: z.boolean().optional(),
 });
 
@@ -52,10 +53,16 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   if (deny) return deny;
 
   const { id } = await params;
-  try {
-    await prisma.job.delete({ where: { id } });
-    return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  const job = await prisma.job.findUnique({ where: { id }, select: { order: true } });
+  if (!job) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  await prisma.$transaction([
+    prisma.job.delete({ where: { id } }),
+    prisma.job.updateMany({
+      where: { order: { gt: job.order } },
+      data: { order: { decrement: 1 } },
+    }),
+  ]);
+
+  return NextResponse.json({ ok: true });
 }

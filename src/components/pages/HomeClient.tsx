@@ -19,7 +19,7 @@ export default function HomeClient() {
       icon: Layers,
       title: "BIM Consulting",
       description:
-        "Coordination, clash detection, and workflow optimization across all disciplines",
+        "Coordination, clash detection and workflow optimization across all disciplines",
     },
     {
       icon: Building2,
@@ -37,7 +37,7 @@ export default function HomeClient() {
       icon: GitMerge,
       title: "MEP Design",
       description:
-        "Integrated mechanical, electrical, and plumbing system planning",
+        "Integrated mechanical, electrical and plumbing system planning",
     },
   ];
 

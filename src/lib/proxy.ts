@@ -1,22 +1,36 @@
 /**
- * Server-side admin auth guard for API routes.
+ * Server-side admin auth guards for API routes.
  *
- * Usage inside any protected API route handler:
- *
+ * Usage:
  *   const deny = await requireAdmin();
  *   if (deny) return deny;
  *
- * Returns a 401 NextResponse if the request is unauthenticated,
- * or null if the session is valid (caller should continue).
+ *   // superadmin-only:
+ *   const deny = await requireSuperAdmin();
+ *   if (deny) return deny;
+ *
+ *   // get current user:
+ *   const user = await getAdminSession();
  */
 import "server-only";
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { getSessionFromCookie, type AdminSessionUser } from "@/lib/adminAuth";
 
 export async function requireAdmin(): Promise<NextResponse | null> {
-  const session = await auth();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getSessionFromCookie();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  return null;
+}
+
+export async function requireSuperAdmin(): Promise<NextResponse | null> {
+  const user = await getSessionFromCookie();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (user.role !== "superadmin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   return null;
+}
+
+export async function getAdminSession(): Promise<AdminSessionUser | null> {
+  return getSessionFromCookie();
 }

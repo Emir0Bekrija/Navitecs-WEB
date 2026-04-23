@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Pencil, Trash2, FolderKanban } from "lucide-react";
+import { Plus, Pencil, Trash2, FolderKanban, ChevronUp, ChevronDown } from "lucide-react";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import type { Project } from "@/types/index";
 import DeleteModal from "./DeleteModal";
@@ -27,17 +27,30 @@ export default function ProjectsAdminClient() {
     loadProjects();
   }
 
+  async function move(index: number, direction: "up" | "down") {
+    const newProjects = [...projects];
+    const swapIndex = direction === "up" ? index - 1 : index + 1;
+    if (swapIndex < 0 || swapIndex >= newProjects.length) return;
+    [newProjects[index], newProjects[swapIndex]] = [newProjects[swapIndex], newProjects[index]];
+    setProjects(newProjects);
+    await fetch("/api/admin/projects/reorder", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: newProjects.map((p) => p.id) }),
+    });
+  }
+
   return (
     <div className="space-y-6 max-w-5xl">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Projects</h2>
           <p className="text-gray-400 text-sm mt-0.5">
-            {projects.length} project{projects.length !== 1 ? "s" : ""} in portfolio
+            {projects.length} project{projects.length !== 1 ? "s" : ""} in portfolio · ↕ to reorder
           </p>
         </div>
         <Link
-          href="/admin/projects/new"
+          href="/navitecs-control-admin/projects/new"
           className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-xl text-sm hover:opacity-90 transition-opacity"
         >
           <Plus size={16} />
@@ -56,7 +69,7 @@ export default function ProjectsAdminClient() {
           <FolderKanban className="mx-auto text-gray-600 mb-4" size={40} />
           <p className="text-gray-400 mb-4">No projects yet</p>
           <Link
-            href="/admin/projects/new"
+            href="/navitecs-control-admin/projects/new"
             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-lg text-sm"
           >
             <Plus size={14} />
@@ -65,12 +78,32 @@ export default function ProjectsAdminClient() {
         </div>
       ) : (
         <div className="space-y-3">
-          {projects.map((project) => (
+          {projects.map((project, index) => (
             <div
               key={project.id}
               className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all"
             >
-              <div className="flex items-center gap-4 p-4">
+              <div className="flex items-center gap-3 p-4">
+                {/* Reorder buttons */}
+                <div className="flex flex-col gap-0.5 shrink-0">
+                  <button
+                    onClick={() => move(index, "up")}
+                    disabled={index === 0}
+                    className="p-1 rounded hover:bg-white/5 text-gray-600 hover:text-gray-300 disabled:opacity-20 transition-colors"
+                    title="Move up"
+                  >
+                    <ChevronUp size={14} />
+                  </button>
+                  <button
+                    onClick={() => move(index, "down")}
+                    disabled={index === projects.length - 1}
+                    className="p-1 rounded hover:bg-white/5 text-gray-600 hover:text-gray-300 disabled:opacity-20 transition-colors"
+                    title="Move down"
+                  >
+                    <ChevronDown size={14} />
+                  </button>
+                </div>
+
                 <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-white/5">
                   {project.image ? (
                     <ImageWithFallback
@@ -112,7 +145,7 @@ export default function ProjectsAdminClient() {
                     ↗
                   </Link>
                   <Link
-                    href={`/admin/projects/${project.id}/edit`}
+                    href={`/navitecs-control-admin/projects/${project.id}/edit`}
                     className="p-2 rounded-lg hover:bg-white/5 transition-colors text-gray-400 hover:text-[#00AEEF]"
                   >
                     <Pencil size={16} />

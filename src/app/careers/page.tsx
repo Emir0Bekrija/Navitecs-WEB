@@ -28,6 +28,7 @@ export default async function Page() {
     location: j.location,
     type: j.type,
     description: j.description,
+    summary: j.summary,
     active: j.active,
     createdAt: j.createdAt.toISOString(),
   }));

@@ -85,10 +85,16 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   if (deny) return deny;
 
   const { id } = await params;
-  try {
-    await prisma.project.delete({ where: { id } });
-    return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  const project = await prisma.project.findUnique({ where: { id }, select: { order: true } });
+  if (!project) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  await prisma.$transaction([
+    prisma.project.delete({ where: { id } }),
+    prisma.project.updateMany({
+      where: { order: { gt: project.order } },
+      data: { order: { decrement: 1 } },
+    }),
+  ]);
+
+  return NextResponse.json({ ok: true });
 }

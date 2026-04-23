@@ -29,6 +29,14 @@ const PROJECT_TYPES = [
   "Other",
 ];
 
+const PROJECT_SERVICES = [
+  "Structural Analysis",
+  "Thermal Analysis",
+  "Seismic Analysis",
+  "Retrofitting",
+  "Custom Solutions",
+];
+
 // ── Score picker ──────────────────────────────────────────────────────────────
 function ScorePicker({
   value,
@@ -119,7 +127,9 @@ function CompanyContactPanel({
       </div>
 
       <div>
-        <label className="text-xs text-gray-500 block mb-1">Internal notes</label>
+        <label className="text-xs text-gray-500 block mb-1">
+          Internal notes
+        </label>
         <textarea
           value={comments}
           onChange={(e) => setComments(e.target.value)}
@@ -146,7 +156,11 @@ export default function ContactsClient() {
   const [contacts, setContacts] = useState<ContactSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [replyTarget, setReplyTarget] = useState<{ email: string; name: string; projectType: string } | null>(null);
+  const [replyTarget, setReplyTarget] = useState<{
+    email: string;
+    name: string;
+    projectType: string;
+  } | null>(null);
 
   // Filters
   const [emailFilter, setEmailFilter] = useState("");
@@ -169,7 +183,9 @@ export default function ContactsClient() {
     if (dateFrom) params.set("dateFrom", dateFrom);
     if (dateTo) params.set("dateTo", dateTo);
     const qs = params.toString();
-    const data = await fetch(`/api/admin/contacts${qs ? `?${qs}` : ""}`).then((r) => r.json());
+    const data = await fetch(`/api/admin/contacts${qs ? `?${qs}` : ""}`).then(
+      (r) => r.json(),
+    );
     setContacts(data);
     setLoading(false);
   }, [emailFilter, nameFilter, projectTypeFilter, dateFrom, dateTo]);
@@ -192,11 +208,17 @@ export default function ContactsClient() {
     fetchContacts();
   }
 
-  const hasFilters = emailFilter || nameFilter || projectTypeFilter || dateFrom || dateTo;
+  const hasFilters =
+    emailFilter || nameFilter || projectTypeFilter || dateFrom || dateTo;
 
-  function handleCompanyContactSaved(contactId: string, updated: CompanyContactRanking) {
+  function handleCompanyContactSaved(
+    contactId: string,
+    updated: CompanyContactRanking,
+  ) {
     setContacts((prev) =>
-      prev.map((c) => (c.id === contactId ? { ...c, companyContact: updated } : c))
+      prev.map((c) =>
+        c.id === contactId ? { ...c, companyContact: updated } : c,
+      ),
     );
   }
 
@@ -217,7 +239,8 @@ export default function ContactsClient() {
           className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#00FF9C]/10 border border-[#00FF9C]/30 text-[#00FF9C] rounded-2xl text-sm font-medium hover:bg-[#00FF9C]/20 transition-all animate-pulse"
         >
           <Bell size={15} />
-          {newCount} new contact{newCount !== 1 ? "s" : ""} received — click to load
+          {newCount} new contact{newCount !== 1 ? "s" : ""} received — click to
+          load
         </button>
       )}
 
@@ -245,7 +268,9 @@ export default function ContactsClient() {
             />
           </div>
           <div>
-            <label className="text-xs text-gray-500 block mb-1">Project type</label>
+            <label className="text-xs text-gray-500 block mb-1">
+              Project type
+            </label>
             <select
               value={projectTypeFilter}
               onChange={(e) => setProjectTypeFilter(e.target.value)}
@@ -253,7 +278,9 @@ export default function ContactsClient() {
             >
               <option value="">All types</option>
               {PROJECT_TYPES.map((t) => (
-                <option key={t} value={t}>{t}</option>
+                <option key={t} value={t}>
+                  {t}
+                </option>
               ))}
             </select>
           </div>
@@ -305,13 +332,20 @@ export default function ContactsClient() {
       {loading ? (
         <div className="space-y-3">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-5 animate-pulse h-24" />
+            <div
+              key={i}
+              className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-5 animate-pulse h-24"
+            />
           ))}
         </div>
       ) : contacts.length === 0 ? (
         <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-12 text-center">
           <MessageSquare className="mx-auto text-gray-600 mb-4" size={40} />
-          <p className="text-gray-400">{hasFilters ? "No contacts match your filters" : "No contact submissions yet"}</p>
+          <p className="text-gray-400">
+            {hasFilters
+              ? "No contacts match your filters"
+              : "No contact submissions yet"}
+          </p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -348,8 +382,18 @@ export default function ContactsClient() {
                     </p>
                   </div>
                   <div className="text-xs text-gray-500 shrink-0 hidden sm:block text-right">
-                    <div>{new Date(contact.submittedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</div>
-                    <div>{new Date(contact.submittedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</div>
+                    <div>
+                      {new Date(contact.submittedAt).toLocaleDateString(
+                        "en-GB",
+                        { day: "numeric", month: "short", year: "numeric" },
+                      )}
+                    </div>
+                    <div>
+                      {new Date(contact.submittedAt).toLocaleTimeString(
+                        "en-GB",
+                        { hour: "2-digit", minute: "2-digit" },
+                      )}
+                    </div>
                   </div>
                   {isExpanded ? (
                     <ChevronUp size={16} className="text-gray-400 shrink-0" />
@@ -363,20 +407,28 @@ export default function ContactsClient() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div className="flex items-center gap-2 text-gray-300">
                         <Mail size={14} className="text-[#00FF9C] shrink-0" />
-                        <a href={`mailto:${contact.email}`}
-                          className="hover:text-[#00FF9C] transition-colors truncate">
+                        <a
+                          href={`mailto:${contact.email}`}
+                          className="hover:text-[#00FF9C] transition-colors truncate"
+                        >
                           {contact.email}
                         </a>
                       </div>
                       {contact.phone && (
                         <div className="flex items-center gap-2 text-gray-300">
-                          <Phone size={14} className="text-[#00FF9C] shrink-0" />
+                          <Phone
+                            size={14}
+                            className="text-[#00FF9C] shrink-0"
+                          />
                           {contact.phone}
                         </div>
                       )}
                       {contact.company && (
                         <div className="flex items-center gap-2 text-gray-300">
-                          <Building2 size={14} className="text-[#00FF9C] shrink-0" />
+                          <Building2
+                            size={14}
+                            className="text-[#00FF9C] shrink-0"
+                          />
                           {contact.company}
                         </div>
                       )}
@@ -394,6 +446,25 @@ export default function ContactsClient() {
                       )}
                     </div>
 
+                    {/* Services required */}
+                    {contact.projectServices && (
+                      <div>
+                        <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
+                          Services Required
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {contact.projectServices.split(",").map((s) => s.trim()).filter(Boolean).map((s) => (
+                            <span
+                              key={s}
+                              className="px-2.5 py-1 rounded-md text-xs bg-[#00FF9C]/10 border border-[#00FF9C]/20 text-[#00FF9C]"
+                            >
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <div>
                       <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
                         Message
@@ -407,7 +478,9 @@ export default function ContactsClient() {
                     {contact.companyContact && (
                       <CompanyContactPanel
                         contact={contact.companyContact}
-                        onSaved={(updated) => handleCompanyContactSaved(contact.id, updated)}
+                        onSaved={(updated) =>
+                          handleCompanyContactSaved(contact.id, updated)
+                        }
                       />
                     )}
 

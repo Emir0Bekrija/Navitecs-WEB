@@ -4,6 +4,7 @@ import path from "path";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { adminEvents } from "@/lib/events";
+import { rateLimit, getClientIp } from "@/lib/rateLimit";
 
 const CV_DIR = path.join(process.cwd(), "uploads", "cvs");
 
@@ -17,10 +18,27 @@ const ApplySchema = z.object({
   portfolio: z.string().max(300).default(""),
   message: z.string().max(5000).default(""),
   jobId: z.string().max(36).optional(),
+  currentlyEmployed: z.enum(["yes", "no"]).optional(),
+  noticePeriod: z.string().max(50).optional(),
+  yearsOfExperience: z.string().max(20).optional(),
+  location: z.string().max(255).optional(),
+  bimSoftware: z.string().max(500).optional(),
 });
 
 // POST /api/apply — public job application (multipart/form-data)
 export async function POST(request: NextRequest) {
+  const { ok, retryAfter } = rateLimit(
+    `apply:${getClientIp(request.headers)}`,
+    3,           // 3 applications
+    60 * 60 * 1000, // per hour
+  );
+  if (!ok) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait a while before trying again." },
+      { status: 429, headers: { "Retry-After": String(retryAfter) } },
+    );
+  }
+
   try {
     const formData = await request.formData();
 
@@ -34,6 +52,11 @@ export async function POST(request: NextRequest) {
       portfolio: String(formData.get("portfolio") ?? ""),
       message: String(formData.get("message") ?? ""),
       jobId: String(formData.get("jobId") ?? "") || undefined,
+      currentlyEmployed: String(formData.get("currentlyEmployed") ?? "") || undefined,
+      noticePeriod: String(formData.get("noticePeriod") ?? "") || undefined,
+      yearsOfExperience: String(formData.get("yearsOfExperience") ?? "") || undefined,
+      location: String(formData.get("location") ?? "") || undefined,
+      bimSoftware: String(formData.get("bimSoftware") ?? "") || undefined,
     };
 
     const parsed = ApplySchema.safeParse(fields);
@@ -90,12 +113,18 @@ export async function POST(request: NextRequest) {
         cvPath,
         jobId,
         applicantId: applicant.id,
+        currentlyEmployed: data.currentlyEmployed === "yes" ? true : data.currentlyEmployed === "no" ? false : null,
+        noticePeriod: data.noticePeriod || null,
+        yearsOfExperience: data.yearsOfExperience || null,
+        location: data.location || null,
+        bimSoftware: data.bimSoftware || null,
       },
     });
 
     adminEvents.emit("new_application");
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (err) {
+    console.error("[POST /api/apply]", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

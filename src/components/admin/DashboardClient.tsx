@@ -10,7 +10,7 @@ import {
   ArrowRight,
   Clock,
 } from "lucide-react";
-import type { Job, Application, ContactSubmission, Project } from "@/types/index";
+import type { Job, GroupedApplicant, ContactSubmission, Project } from "@/types/index";
 
 type Stats = {
   totalJobs: number;
@@ -18,7 +18,7 @@ type Stats = {
   totalApplications: number;
   totalContacts: number;
   totalProjects: number;
-  recentApplications: Application[];
+  recentApplications: GroupedApplicant[];
   recentContacts: ContactSubmission[];
 };
 
@@ -38,7 +38,7 @@ export default function DashboardClient() {
         fetchArray("/api/admin/jobs") as Promise<Job[]>,
         fetch("/api/admin/applications").then(async (r) => {
           if (!r.ok) return [];
-          const json = await r.json() as { data?: Application[] };
+          const json = await r.json() as { data?: GroupedApplicant[] };
           return Array.isArray(json.data) ? json.data : [];
         }),
         fetchArray("/api/admin/contacts") as Promise<ContactSubmission[]>,
@@ -64,7 +64,7 @@ export default function DashboardClient() {
           value: stats.activeJobs,
           sub: `${stats.totalJobs} total`,
           icon: Briefcase,
-          href: "/admin/jobs",
+          href: "/navitecs-control-admin/jobs",
           color: "#00AEEF",
         },
         {
@@ -72,7 +72,7 @@ export default function DashboardClient() {
           value: stats.totalApplications,
           sub: "total received",
           icon: FileText,
-          href: "/admin/applications",
+          href: "/navitecs-control-admin/applications",
           color: "#00FF9C",
         },
         {
@@ -80,7 +80,7 @@ export default function DashboardClient() {
           value: stats.totalContacts,
           sub: "total received",
           icon: MessageSquare,
-          href: "/admin/contacts",
+          href: "/navitecs-control-admin/contacts",
           color: "#00AEEF",
         },
         {
@@ -88,7 +88,7 @@ export default function DashboardClient() {
           value: stats.totalProjects,
           sub: "in portfolio",
           icon: FolderKanban,
-          href: "/admin/projects",
+          href: "/navitecs-control-admin/projects",
           color: "#00FF9C",
         },
       ]
@@ -153,7 +153,7 @@ export default function DashboardClient() {
           <div className="flex items-center justify-between mb-5">
             <h3 className="font-semibold">Recent Applications</h3>
             <Link
-              href="/admin/applications"
+              href="/navitecs-control-admin/applications"
               className="text-xs text-[#00AEEF] hover:text-[#00FF9C] transition-colors"
             >
               View all →
@@ -175,11 +175,11 @@ export default function DashboardClient() {
                     <p className="text-sm font-medium truncate">
                       {app.firstName} {app.lastName}
                     </p>
-                    <p className="text-xs text-gray-400 truncate">{app.role}</p>
+                    <p className="text-xs text-gray-400 truncate">{app.applications[0]?.role}</p>
                   </div>
                   <div className="flex items-center gap-1 text-xs text-gray-500 shrink-0">
                     <Clock size={11} />
-                    {new Date(app.submittedAt).toLocaleDateString()}
+                    {new Date(app.applications[0]?.submittedAt).toLocaleDateString()}
                   </div>
                 </div>
               ))}
@@ -192,7 +192,7 @@ export default function DashboardClient() {
           <div className="flex items-center justify-between mb-5">
             <h3 className="font-semibold">Recent Contact Requests</h3>
             <Link
-              href="/admin/contacts"
+              href="/navitecs-control-admin/contacts"
               className="text-xs text-[#00AEEF] hover:text-[#00FF9C] transition-colors"
             >
               View all →
