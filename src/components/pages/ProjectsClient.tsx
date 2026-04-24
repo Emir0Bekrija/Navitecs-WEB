@@ -1,4 +1,5 @@
 "use client";
+import { usePageView } from "@/hooks/usePageView";
 
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -11,6 +12,7 @@ import type { Project } from "@/types/index";
 type Props = { initialProjects?: Project[] };
 
 export default function ProjectsClient({ initialProjects }: Props) {
+  usePageView();
   const projects = initialProjects ?? (staticProjects as Project[]);
   const [activeFilter, setActiveFilter] = useState("All");
 

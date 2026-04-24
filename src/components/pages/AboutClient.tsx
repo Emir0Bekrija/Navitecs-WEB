@@ -1,10 +1,12 @@
 "use client";
+import { usePageView } from "@/hooks/usePageView";
 
 import { motion } from "framer-motion";
 import { Target, Eye, Layers, Users, Award, CheckCircle } from "lucide-react";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 
 export default function AboutClient() {
+  usePageView();
   const milestones = [
     {
       year: "2009",

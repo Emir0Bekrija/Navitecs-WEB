@@ -1,4 +1,5 @@
 "use client";
+import { usePageView } from "@/hooks/usePageView";
 
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -28,6 +29,7 @@ type CareersClientProps = {
 export default function CareersClient({
   initialJobs = [],
 }: CareersClientProps) {
+  usePageView();
   const jobs = initialJobs;
 
   const benefits = [

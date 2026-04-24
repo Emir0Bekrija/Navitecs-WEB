@@ -202,6 +202,17 @@ model CompanyContact {
   @@map("company_contacts")
 }
 
+// ─── Page View Tracking ───────────────────────────────────────────────────────
+
+model PageView {
+  id        Int      @id @default(autoincrement())
+  path      String   @db.VarChar(255)
+  createdAt DateTime @default(now())
+
+  @@index([path, createdAt])
+  @@map("page_views")
+}
+
 // ─── SMTP Config (singleton) ──────────────────────────────────────────────────
 
 model SmtpConfig {

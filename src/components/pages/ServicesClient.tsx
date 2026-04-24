@@ -1,4 +1,5 @@
 "use client";
+import { usePageView } from "@/hooks/usePageView";
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
@@ -144,6 +145,7 @@ function ServiceImageBlock({
 }
 
 export default function ServicesClient() {
+  usePageView();
   const services = [
     {
       icon: Layers,

@@ -1,4 +1,5 @@
 "use client";
+import { usePageView } from "@/hooks/usePageView";
 
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -14,6 +15,7 @@ import { ImageWithFallback } from "../figma/ImageWithFallback";
 import ToolsSection from "../ToolsSection";
 
 export default function HomeClient() {
+  usePageView();
   const services = [
     {
       icon: Layers,

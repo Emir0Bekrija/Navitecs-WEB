@@ -1,4 +1,5 @@
 "use client";
+import { usePageView } from "@/hooks/usePageView";
 
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -11,6 +12,7 @@ import type { Project } from "@/types/index";
 type Props = { allProjects?: Project[] };
 
 export default function ProjectDetailsClient({ allProjects }: Props) {
+  usePageView();
   const projects = allProjects ?? (staticProjects as Project[]);
   const params = useParams();
   const id =

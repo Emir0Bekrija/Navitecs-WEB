@@ -6,7 +6,7 @@ const SETUP_PATH = "/navitecs-control-admin/setup";
 // Cookie name must match SESSION_COOKIE in src/lib/adminAuth.ts
 const SESSION_COOKIE = "nca_sess";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!pathname.startsWith(ADMIN_PREFIX)) return NextResponse.next();

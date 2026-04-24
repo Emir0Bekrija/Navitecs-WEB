@@ -1,4 +1,5 @@
 "use client";
+import { usePageView } from "@/hooks/usePageView";
 
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -13,6 +14,7 @@ type ApplyClientProps = {
 };
 
 export default function ApplyClient({ initialRole = "", initialJobId = "", jobDetails }: ApplyClientProps) {
+  usePageView();
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);

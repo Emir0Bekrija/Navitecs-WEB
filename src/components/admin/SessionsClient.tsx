@@ -112,7 +112,13 @@ export default function SessionsClient() {
           {sessions.map((s) => {
             const browser = parseBrowser(s.userAgent);
             const os = parseOS(s.userAgent);
-            const expiresIn = Math.max(0, Math.round((new Date(s.expiresAt).getTime() - Date.now()) / 60000));
+            const expiresInMs = Math.max(0, new Date(s.expiresAt).getTime() - Date.now());
+            const expiresInTotal = Math.round(expiresInMs / 60000);
+            const expiresHours = Math.floor(expiresInTotal / 60);
+            const expiresMinutes = expiresInTotal % 60;
+            const expiresLabel = expiresHours > 0
+              ? `${expiresHours}h ${expiresMinutes}m`
+              : `${expiresMinutes}m`;
 
             return (
               <div
@@ -156,8 +162,8 @@ export default function SessionsClient() {
                         day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
                       })}
                     </span>
-                    <span className={expiresIn < 30 ? "text-yellow-500" : ""}>
-                      Expires in {expiresIn}m
+                    <span className={expiresInTotal < 30 ? "text-yellow-500" : ""}>
+                      Expires in {expiresLabel}
                     </span>
                   </div>
                 </div>

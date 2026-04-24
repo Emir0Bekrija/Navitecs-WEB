@@ -1,4 +1,5 @@
 "use client";
+import { usePageView } from "@/hooks/usePageView";
 
 import { motion } from "motion/react";
 import { useState } from "react";
@@ -13,6 +14,7 @@ const PROJECT_SERVICES = [
 ];
 
 export default function Contact() {
+  usePageView();
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);

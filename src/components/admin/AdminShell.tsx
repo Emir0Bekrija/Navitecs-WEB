@@ -9,6 +9,7 @@ import {
   Briefcase,
   FileText,
   MessageSquare,
+  Building2,
   FolderKanban,
   Settings,
   LogOut,
@@ -46,6 +47,11 @@ const BASE_NAV = [
     href: "/navitecs-control-admin/contacts",
     label: "Contacts",
     icon: MessageSquare,
+  },
+  {
+    href: "/navitecs-control-admin/company-contacts",
+    label: "Company Contacts",
+    icon: Building2,
   },
   {
     href: "/navitecs-control-admin/projects",
