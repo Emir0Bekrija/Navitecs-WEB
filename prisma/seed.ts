@@ -18,7 +18,7 @@ dotenv.config({ path: fs.existsSync(envPath) ? envPath : ".env" });
 const { PrismaMariaDb } = await import("@prisma/adapter-mariadb");
 const { PrismaClient } = await import("@/generated/prisma/client");
 const bcrypt = await import("bcryptjs");
-const { projects: staticProjects } = await import("@/data/projects");
+//const { projects: staticProjects } = await import("@/data/projects");
 
 function readJson<T>(filename: string): T | null {
   const fullPath = path.resolve(process.cwd(), "src", "data", filename);
@@ -57,7 +57,7 @@ async function main() {
   console.log("✓ Admin user seeded");
 
   // ── Projects ──────────────────────────────────────────────────────────────
-  type ProjectData = (typeof staticProjects)[number];
+  /*type ProjectData = (typeof staticProjects)[number];
   const projectsJson = readJson<ProjectData[]>("projects.json");
   const projectsToSeed = projectsJson ?? staticProjects;
 
@@ -90,7 +90,7 @@ async function main() {
       },
     });
   }
-  console.log(`✓ ${projectsToSeed.length} projects seeded`);
+  console.log(`✓ ${projectsToSeed.length} projects seeded`);*/
 
   // ── Jobs ──────────────────────────────────────────────────────────────────
   type OldJob = {
