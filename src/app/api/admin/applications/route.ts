@@ -13,16 +13,18 @@ export async function GET(request: NextRequest) {
   if (deny) return deny;
 
   const { searchParams } = request.nextUrl;
-  const jobId = searchParams.get("jobId");
+  const jobId    = searchParams.get("jobId");
   const dateFrom = searchParams.get("dateFrom");
-  const dateTo = searchParams.get("dateTo");
+  const dateTo   = searchParams.get("dateTo");
   const minScore = searchParams.get("minScore");
   // "yes" = must have a score, "no" = must not have a score, null = any
   const hasScore = searchParams.get("hasScore");
-  const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
+  // "yes" = application has a CV file, "no" = no CV file
+  const hasCV    = searchParams.get("hasCV");
+  const page     = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
   const skip = (page - 1) * PAGE_SIZE;
 
-  // Filter applied to applications (jobId / date range)
+  // Filter applied to applications (jobId / date range / hasCV)
   const applicationWhere = {
     ...(jobId ? { jobId } : {}),
     ...(dateFrom || dateTo
@@ -33,6 +35,9 @@ export async function GET(request: NextRequest) {
           },
         }
       : {}),
+    ...(hasCV === "yes"      ? { cvPath: { not: null } }                       : {}),
+    ...(hasCV === "no"       ? { cvPath: null }                                : {}),
+    ...(hasCV === "deletable"? { cvDeletable: true, cvPath: { not: null } }    : {}),
   };
 
   // Applicant-level filter
@@ -63,6 +68,15 @@ export async function GET(request: NextRequest) {
   }
   if (hasScore === "no") {
     conditions.push(Prisma.sql`a.score IS NULL`);
+  }
+  if (hasCV === "yes") {
+    conditions.push(Prisma.sql`app.cvPath IS NOT NULL`);
+  }
+  if (hasCV === "no") {
+    conditions.push(Prisma.sql`app.cvPath IS NULL`);
+  }
+  if (hasCV === "deletable") {
+    conditions.push(Prisma.sql`app.cvDeletable = 1 AND app.cvPath IS NOT NULL`);
   }
 
   const whereClause = Prisma.join(conditions, " AND ");
@@ -111,6 +125,7 @@ export async function GET(request: NextRequest) {
               role: true,
               submittedAt: true,
               cvFileName: true,
+              cvDeletable: true,
               message: true,
               phone: true,
               linkedin: true,

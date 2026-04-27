@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Pencil, Trash2, FolderKanban, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Pencil, Trash2, FolderKanban, ChevronUp, ChevronDown, Star, MapPin } from "lucide-react";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import type { Project } from "@/types/index";
 import DeleteModal from "./DeleteModal";
@@ -46,7 +46,7 @@ export default function ProjectsAdminClient() {
         <div>
           <h2 className="text-2xl font-bold">Projects</h2>
           <p className="text-gray-400 text-sm mt-0.5">
-            {projects.length} project{projects.length !== 1 ? "s" : ""} in portfolio · ↕ to reorder
+            {projects.length} project{projects.length !== 1 ? "s" : ""} in portfolio · drag ↕ to reorder
           </p>
         </div>
         <Link
@@ -84,33 +84,20 @@ export default function ProjectsAdminClient() {
               className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all"
             >
               <div className="flex items-center gap-3 p-4">
-                {/* Reorder buttons */}
+                {/* Reorder */}
                 <div className="flex flex-col gap-0.5 shrink-0">
-                  <button
-                    onClick={() => move(index, "up")}
-                    disabled={index === 0}
-                    className="p-1 rounded hover:bg-white/5 text-gray-600 hover:text-gray-300 disabled:opacity-20 transition-colors"
-                    title="Move up"
-                  >
+                  <button onClick={() => move(index, "up")} disabled={index === 0} className="p-1 rounded hover:bg-white/5 text-gray-600 hover:text-gray-300 disabled:opacity-20 transition-colors" title="Move up">
                     <ChevronUp size={14} />
                   </button>
-                  <button
-                    onClick={() => move(index, "down")}
-                    disabled={index === projects.length - 1}
-                    className="p-1 rounded hover:bg-white/5 text-gray-600 hover:text-gray-300 disabled:opacity-20 transition-colors"
-                    title="Move down"
-                  >
+                  <button onClick={() => move(index, "down")} disabled={index === projects.length - 1} className="p-1 rounded hover:bg-white/5 text-gray-600 hover:text-gray-300 disabled:opacity-20 transition-colors" title="Move down">
                     <ChevronDown size={14} />
                   </button>
                 </div>
 
+                {/* Thumbnail */}
                 <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-white/5">
-                  {project.image ? (
-                    <ImageWithFallback
-                      src={project.image}
-                      alt={project.title}
-                      className="w-full h-full object-cover"
-                    />
+                  {project.featuredImage ? (
+                    <ImageWithFallback src={project.featuredImage} alt={project.title} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <FolderKanban size={20} className="text-gray-600" />
@@ -118,42 +105,46 @@ export default function ProjectsAdminClient() {
                   )}
                 </div>
 
+                {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-white truncate">
-                      {project.title}
-                    </h3>
+                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                    <h3 className="font-semibold text-white truncate">{project.title}</h3>
                     <span className="px-2 py-0.5 text-xs bg-[#00AEEF]/15 text-[#00AEEF] rounded-full border border-[#00AEEF]/20 shrink-0">
                       {project.category}
                     </span>
+                    {project.status === "draft" && (
+                      <span className="px-2 py-0.5 text-xs bg-yellow-500/15 text-yellow-400 rounded-full border border-yellow-500/20 shrink-0">
+                        Draft
+                      </span>
+                    )}
+                    {project.featured && (
+                      <Star size={12} className="text-yellow-400 shrink-0" />
+                    )}
                   </div>
-                  <p className="text-sm text-gray-400 truncate">
-                    {project.description}
-                  </p>
-                  <p className="text-xs text-gray-600 mt-0.5 truncate">
-                    {project.scope}
-                  </p>
+                  <p className="text-sm text-gray-400 truncate">{project.description}</p>
+                  <div className="flex items-center gap-3 mt-0.5">
+                    {project.location && (
+                      <span className="flex items-center gap-1 text-xs text-gray-600">
+                        <MapPin size={10} /> {project.location}
+                      </span>
+                    )}
+                    {project.scopeOfWork.length > 0 && (
+                      <span className="text-xs text-gray-600 truncate">
+                        {project.scopeOfWork.slice(0, 2).join(" · ")}{project.scopeOfWork.length > 2 ? ` +${project.scopeOfWork.length - 2}` : ""}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
+                {/* Actions */}
                 <div className="flex items-center gap-2 shrink-0">
-                  <Link
-                    href={`/projects/${project.id}`}
-                    target="_blank"
-                    title="View on site"
-                    className="p-2 rounded-lg hover:bg-white/5 transition-colors text-gray-400 hover:text-white text-xs"
-                  >
+                  <Link href={`/projects/${project.id}`} target="_blank" title="View on site" className="p-2 rounded-lg hover:bg-white/5 transition-colors text-gray-400 hover:text-white text-xs">
                     ↗
                   </Link>
-                  <Link
-                    href={`/navitecs-control-admin/projects/${project.id}/edit`}
-                    className="p-2 rounded-lg hover:bg-white/5 transition-colors text-gray-400 hover:text-[#00AEEF]"
-                  >
+                  <Link href={`/navitecs-control-admin/projects/${project.id}/edit`} className="p-2 rounded-lg hover:bg-white/5 transition-colors text-gray-400 hover:text-[#00AEEF]">
                     <Pencil size={16} />
                   </Link>
-                  <button
-                    onClick={() => setPendingDelete({ id: project.id, title: project.title })}
-                    className="p-2 rounded-lg hover:bg-red-500/10 transition-colors text-gray-400 hover:text-red-400"
-                  >
+                  <button onClick={() => setPendingDelete({ id: project.id, title: project.title })} className="p-2 rounded-lg hover:bg-red-500/10 transition-colors text-gray-400 hover:text-red-400">
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -168,6 +159,7 @@ export default function ProjectsAdminClient() {
           itemName={pendingDelete.title}
           onConfirm={() => confirmDelete(pendingDelete.id)}
           onClose={() => setPendingDelete(null)}
+          actionHint={`delete_project:${pendingDelete.id}`}
         />
       )}
     </div>

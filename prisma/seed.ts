@@ -212,33 +212,6 @@ async function main() {
     console.log(`✓ ${applications.length} applications seeded`);
   }
 
-  // ── SMTP config singleton ─────────────────────────────────────────────────
-  type SmtpJson = {
-    host?: string;
-    port?: number;
-    secure?: boolean;
-    user?: string;
-    password?: string;
-    fromName?: string;
-    fromEmail?: string;
-  };
-  const smtp = readJson<SmtpJson>("smtp-config.json");
-  const smtpData = {
-    host: smtp?.host ?? "",
-    port: smtp?.port ?? 587,
-    secure: smtp?.secure ?? false,
-    user: smtp?.user ?? "",
-    password: smtp?.password ?? "",
-    fromName: smtp?.fromName ?? "NAVITECS",
-    fromEmail: smtp?.fromEmail ?? "",
-  };
-  await prisma.smtpConfig.upsert({
-    where: { id: 1 },
-    update: smtpData,
-    create: { id: 1, ...smtpData },
-  });
-  console.log("✓ SMTP config seeded");
-
   console.log("\nSeed complete.");
 }
 

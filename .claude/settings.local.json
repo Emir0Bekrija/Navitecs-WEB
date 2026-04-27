@@ -4,7 +4,16 @@
       "Bash(npx tsc:*)",
       "Bash(rm:*)",
       "Bash(npm audit:*)",
-      "Bash(npx prisma:*)"
+      "Bash(npx prisma:*)",
+      "Bash(ls -la /c/EMIR/Navitecs/navitecs.next.js/src/app/api/admin/projects/[id]/)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(node -e \"const geoip = require\\('geoip-lite'\\); console.log\\(geoip.lookup\\('8.8.8.8'\\)\\)\")",
+      "Bash(npx next:*)",
+      "Bash(node -e ':*)",
+      "Bash(xargs npm:*)",
+      "Bash(node -e \" let data = ''; process.stdin.on\\('data', d => data += d\\); process.stdin.on\\('end', \\(\\) => { // npm show with multiple args returns a different format console.log\\(data.slice\\(0, 200\\)\\); }\\); \")",
+      "Bash(npm show:*)"
     ]
   }
 }

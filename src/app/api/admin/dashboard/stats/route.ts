@@ -29,6 +29,18 @@ function groupByField(values: (string | null | undefined)[], topN = 8): { label:
     .slice(0, topN);
 }
 
+function groupByHour(dates: Date[]): { hour: number; count: number }[] {
+  const map = new Map<number, number>();
+  for (let h = 0; h < 24; h++) map.set(h, 0);
+  for (const d of dates) {
+    const h = d.getHours();
+    map.set(h, (map.get(h) ?? 0) + 1);
+  }
+  return Array.from(map.entries())
+    .map(([hour, count]) => ({ hour, count }))
+    .sort((a, b) => a.hour - b.hour);
+}
+
 // GET /api/admin/dashboard/stats?from=YYYY-MM-DD&to=YYYY-MM-DD
 export async function GET(request: NextRequest) {
   const deny = await requireAdmin();
@@ -42,10 +54,12 @@ export async function GET(request: NextRequest) {
   const to = toParam ? new Date(toParam + "T23:59:59") : new Date();
 
   try {
-    const [applications, contacts, pageViews]: [
+    const [applications, contacts, pageViews, popupClicks, avgDurationRaw]: [
       { submittedAt: Date; role: string; job: { title: string } | null }[],
       { submittedAt: Date; projectType: string | null }[],
-      { createdAt: Date; path: string }[],
+      { createdAt: Date; path: string; country: string | null }[],
+      { createdAt: Date; linkUrl: string; linkTitle: string | null }[],
+      { _avg: { duration: number | null } },
     ] = await Promise.all([
       prisma.application.findMany({
         where: { submittedAt: { gte: from, lte: to } },
@@ -57,7 +71,15 @@ export async function GET(request: NextRequest) {
       }),
       prisma.pageView.findMany({
         where: { createdAt: { gte: from, lte: to } },
-        select: { createdAt: true, path: true },
+        select: { createdAt: true, path: true, country: true },
+      }),
+      prisma.popupClick.findMany({
+        where: { createdAt: { gte: from, lte: to } },
+        select: { createdAt: true, linkUrl: true, linkTitle: true },
+      }),
+      prisma.pageView.aggregate({
+        _avg: { duration: true },
+        where: { duration: { not: null }, createdAt: { gte: from, lte: to } },
       }),
     ]);
 
@@ -81,16 +103,37 @@ export async function GET(request: NextRequest) {
     );
 
     // Page views: exclude /projects/<id> sub-pages (shown in project views above)
-    // Normalise "/" and "/home" to the same bucket
     const normalizedPaths = pageViews
       .filter((p) => !p.path.startsWith("/projects/") || p.path === "/projects")
       .map((p) => (p.path === "/" ? "/home" : p.path));
     const pageViewsByPath = groupByField(normalizedPaths, 15);
 
+    // Traffic by hour (0–23)
+    const trafficByHour = groupByHour(pageViews.map((p) => p.createdAt));
+
+    // Country breakdown
+    const countryBreakdown = groupByField(
+      pageViews.map((p) => p.country),
+      20
+    );
+
+    // Popup clicks
+    const popupClicksByDay = groupByDay(popupClicks.map((c) => c.createdAt));
+    const popupClicksByTitle = groupByField(
+      popupClicks.map((c) => c.linkTitle ?? c.linkUrl),
+      10
+    );
+
+    // Average session duration (seconds)
+    const avgSessionDuration = avgDurationRaw._avg.duration
+      ? Math.round(avgDurationRaw._avg.duration)
+      : null;
+
     return NextResponse.json({
       totals: {
         applications: applications.length,
         contacts: contacts.length,
+        pageViews: pageViews.length,
       },
       applicationsByDay,
       contactsByDay,
@@ -98,6 +141,14 @@ export async function GET(request: NextRequest) {
       contactsByProjectType,
       projectViews,
       pageViewsByPath,
+      trafficByHour,
+      countryBreakdown,
+      avgSessionDuration,
+      popupClicks: {
+        total: popupClicks.length,
+        byDay: popupClicksByDay,
+        byTitle: popupClicksByTitle,
+      },
     });
   } catch (err) {
     console.error("[GET /api/admin/dashboard/stats]", err);

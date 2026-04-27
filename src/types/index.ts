@@ -1,16 +1,43 @@
+export type { ContentBlock, ContentBlockType } from "@/lib/blocks";
+import type { ContentBlock } from "@/lib/blocks";
+
+// ── Projects ───────────────────────────────────────────────────────────────────
+
+export type MediaItem = {
+  url: string;
+  caption?: string;
+  type?: "image" | "video";
+};
+
 export type Project = {
   id: string;
   title: string;
   category: string;
+  location?: string | null;
+  projectSize?: string | null;
+  timeline?: string | null;
+  numberOfUnits?: string | null;
+  clientType?: string | null;
   description: string;
-  scope: string;
-  image: string;
-  caseStudy: {
-    challenge: string;
-    solution: string;
-    results: string[];
-  };
+  featuredImage?: string | null;
+  scopeOfWork: string[];
+  toolsAndTech: string[];
+  challenge?: string | null;
+  solution?: string | null;
+  results: string[];
+  valueDelivered: string[];
+  media: MediaItem[];
+  contentBlocks: ContentBlock[];
+  status: "draft" | "published";
+  featured: boolean;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  order: number;
+  createdAt?: string;
+  updatedAt?: string;
 };
+
+// ── Jobs ───────────────────────────────────────────────────────────────────────
 
 export type Job = {
   id: string;
@@ -24,6 +51,8 @@ export type Job = {
   createdAt: string;
   requirements?: string[];
 };
+
+// ── Applications ───────────────────────────────────────────────────────────────
 
 export type ApplicantRanking = {
   id: string;
@@ -56,6 +85,7 @@ export type ApplicationEntry = {
   role: string;
   submittedAt: string;
   cvFileName?: string | null;
+  cvDeletable: boolean;
   message?: string | null;
   phone: string;
   linkedin?: string | null;

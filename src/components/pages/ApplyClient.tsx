@@ -4,7 +4,16 @@ import { usePageView } from "@/hooks/usePageView";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useState } from "react";
-import { Upload, CheckCircle, ArrowLeft, Send, Lock, MapPin, Clock, Briefcase } from "lucide-react";
+import {
+  Upload,
+  CheckCircle,
+  ArrowLeft,
+  Send,
+  Lock,
+  MapPin,
+  Clock,
+  Briefcase,
+} from "lucide-react";
 import type { JobDetails } from "@/app/careers/apply/page";
 
 type ApplyClientProps = {
@@ -13,7 +22,11 @@ type ApplyClientProps = {
   jobDetails?: JobDetails | null;
 };
 
-export default function ApplyClient({ initialRole = "", initialJobId = "", jobDetails }: ApplyClientProps) {
+export default function ApplyClient({
+  initialRole = "",
+  initialJobId = "",
+  jobDetails,
+}: ApplyClientProps) {
   usePageView();
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -43,24 +56,36 @@ export default function ApplyClient({ initialRole = "", initialJobId = "", jobDe
 
   function handleBimToggle(software: string) {
     setBimSoftware((prev) =>
-      prev.includes(software) ? prev.filter((s) => s !== software) : [...prev, software]
+      prev.includes(software)
+        ? prev.filter((s) => s !== software)
+        : [...prev, software],
     );
   }
 
   function validateField(name: string, value: string): string {
     switch (name) {
-      case "firstName": return value.trim() ? "" : "First name is required.";
-      case "lastName": return value.trim() ? "" : "Last name is required.";
+      case "firstName":
+        return value.trim() ? "" : "First name is required.";
+      case "lastName":
+        return value.trim() ? "" : "Last name is required.";
       case "email":
         if (!value.trim()) return "Email is required.";
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? "" : "Please enter a valid email address.";
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+          ? ""
+          : "Please enter a valid email address.";
       case "phone":
         if (!value.trim()) return "Phone number is required.";
-        return /^\+?[\d\s\-(). ]{7,20}$/.test(value.trim()) ? "" : "Please enter a valid phone number.";
-      case "currentlyEmployed": return value ? "" : "Please select an option.";
-      case "yearsOfExperience": return value ? "" : "Please select your experience range.";
-      case "location": return value.trim() ? "" : "Current location is required.";
-      default: return "";
+        return /^\+?[\d\s\-(). ]{7,20}$/.test(value.trim())
+          ? ""
+          : "Please enter a valid phone number.";
+      case "currentlyEmployed":
+        return value ? "" : "Please select an option.";
+      case "yearsOfExperience":
+        return value ? "" : "Please select your experience range.";
+      case "location":
+        return value.trim() ? "" : "Current location is required.";
+      default:
+        return "";
     }
   }
 
@@ -68,7 +93,11 @@ export default function ApplyClient({ initialRole = "", initialJobId = "", jobDe
     setErrors((prev) => ({ ...prev, [name]: msg }));
   }
 
-  function handleBlur(e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
+  function handleBlur(
+    e: React.FocusEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) {
     const { name, value } = e.target;
     const msg = validateField(name, value);
     setFieldError(name, msg);
@@ -79,10 +108,21 @@ export default function ApplyClient({ initialRole = "", initialJobId = "", jobDe
     if (fileError) return;
 
     // Validate all required fields
-    const requiredFields = ["firstName", "lastName", "email", "phone", "currentlyEmployed", "yearsOfExperience", "location"];
+    const requiredFields = [
+      "firstName",
+      "lastName",
+      "email",
+      "phone",
+      "currentlyEmployed",
+      "yearsOfExperience",
+      "location",
+    ];
     const newErrors: Record<string, string> = {};
     for (const field of requiredFields) {
-      const msg = validateField(field, formData[field as keyof typeof formData]);
+      const msg = validateField(
+        field,
+        formData[field as keyof typeof formData],
+      );
       if (msg) newErrors[field] = msg;
     }
     if (Object.keys(newErrors).length > 0) {
@@ -106,7 +146,8 @@ export default function ApplyClient({ initialRole = "", initialJobId = "", jobDe
     if (allBim.length > 0) data.append("bimSoftware", allBim.join(","));
 
     // Append PDF file
-    const fileInput = form.querySelector<HTMLInputElement>('input[type="file"]');
+    const fileInput =
+      form.querySelector<HTMLInputElement>('input[type="file"]');
     if (fileInput?.files?.[0]) {
       data.append("cv", fileInput.files[0]);
     }
@@ -115,7 +156,7 @@ export default function ApplyClient({ initialRole = "", initialJobId = "", jobDe
     setSubmitting(false);
 
     if (!res.ok) {
-      const json = await res.json().catch(() => ({})) as { error?: string };
+      const json = (await res.json().catch(() => ({}))) as { error?: string };
       setSubmitError(json.error ?? "Something went wrong. Please try again.");
       return;
     }
@@ -193,9 +234,8 @@ export default function ApplyClient({ initialRole = "", initialJobId = "", jobDe
             </span>
           </h1>
 
-          {/* Job details */}
           {jobDetails && (
-            <div className="mb-10 bg-white/3 border border-white/10 rounded-2xl p-6 space-y-4">
+            <div className="group relative mb-10 bg-white/10 border border-white/15 hover:bg-black/85 hover:border-white/30 duration-200 ease-in-out rounded-2xl p-6 space-y-4">
               <div className="flex flex-wrap gap-3 text-sm text-gray-400">
                 <span className="flex items-center gap-1.5">
                   <Briefcase size={14} className="text-[#00AEEF]" />
@@ -210,9 +250,12 @@ export default function ApplyClient({ initialRole = "", initialJobId = "", jobDe
                   {jobDetails.type}
                 </span>
               </div>
+
               <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">About this role</p>
-                <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+                <p className="text-xs text-gray-500 uppercase tracking-wider mb-2 transition-colors duration-300 group-hover:text-white/90 group-hover:font-bold">
+                  About this role
+                </p>
+                <p className="text-gray-300 text-sm leading-relaxed group-hover:text-white/90 whitespace-pre-wrap">
                   {jobDetails.description}
                 </p>
               </div>
@@ -220,7 +263,8 @@ export default function ApplyClient({ initialRole = "", initialJobId = "", jobDe
           )}
 
           <p className="text-gray-400 text-lg mb-10">
-            Submit your application below and we&apos;ll reach out to you shortly.
+            Submit your application below and we&apos;ll reach out to you
+            shortly.
           </p>
 
           {formSubmitted ? (
@@ -244,60 +288,111 @@ export default function ApplyClient({ initialRole = "", initialJobId = "", jobDe
             <form onSubmit={handleSubmit} noValidate className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="firstName"
+                    className="block text-sm font-medium mb-2"
+                  >
                     First Name *
                   </label>
                   <input
-                    type="text" id="firstName" name="firstName" required
-                    value={formData.firstName} onChange={handleChange} onBlur={handleBlur}
+                    type="text"
+                    id="firstName"
+                    name="firstName"
+                    required
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
                     className={`w-full px-4 py-3 bg-[#0a0a0a] border rounded-lg focus:outline-none transition-colors text-white ${errors.firstName ? "border-red-500/70 focus:border-red-500" : "border-white/10 focus:border-[#00AEEF]"}`}
                     placeholder="John"
                   />
-                  {errors.firstName && <p className="mt-1.5 text-xs text-red-400">{errors.firstName}</p>}
+                  {errors.firstName && (
+                    <p className="mt-1.5 text-xs text-red-400">
+                      {errors.firstName}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="lastName"
+                    className="block text-sm font-medium mb-2"
+                  >
                     Last Name *
                   </label>
                   <input
-                    type="text" id="lastName" name="lastName" required
-                    value={formData.lastName} onChange={handleChange} onBlur={handleBlur}
+                    type="text"
+                    id="lastName"
+                    name="lastName"
+                    required
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
                     className={`w-full px-4 py-3 bg-[#0a0a0a] border rounded-lg focus:outline-none transition-colors text-white ${errors.lastName ? "border-red-500/70 focus:border-red-500" : "border-white/10 focus:border-[#00AEEF]"}`}
                     placeholder="Doe"
                   />
-                  {errors.lastName && <p className="mt-1.5 text-xs text-red-400">{errors.lastName}</p>}
+                  {errors.lastName && (
+                    <p className="mt-1.5 text-xs text-red-400">
+                      {errors.lastName}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium mb-2"
+                  >
                     Email Address *
                   </label>
                   <input
-                    type="email" id="email" name="email" required
-                    value={formData.email} onChange={handleChange} onBlur={handleBlur}
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
                     className={`w-full px-4 py-3 bg-[#0a0a0a] border rounded-lg focus:outline-none transition-colors text-white ${errors.email ? "border-red-500/70 focus:border-red-500" : "border-white/10 focus:border-[#00AEEF]"}`}
                     placeholder="john@example.com"
                   />
-                  {errors.email && <p className="mt-1.5 text-xs text-red-400">{errors.email}</p>}
+                  {errors.email && (
+                    <p className="mt-1.5 text-xs text-red-400">
+                      {errors.email}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium mb-2"
+                  >
                     Phone Number *
                   </label>
                   <input
-                    type="tel" id="phone" name="phone" required
-                    value={formData.phone} onChange={handleChange} onBlur={handleBlur}
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    required
+                    value={formData.phone}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
                     className={`w-full px-4 py-3 bg-[#0a0a0a] border rounded-lg focus:outline-none transition-colors text-white ${errors.phone ? "border-red-500/70 focus:border-red-500" : "border-white/10 focus:border-[#00AEEF]"}`}
                     placeholder="+387 XX XXX XXX"
                   />
-                  {errors.phone && <p className="mt-1.5 text-xs text-red-400">{errors.phone}</p>}
+                  {errors.phone && (
+                    <p className="mt-1.5 text-xs text-red-400">
+                      {errors.phone}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div>
-                <label htmlFor="role" className="block text-sm font-medium mb-2">
+                <label
+                  htmlFor="role"
+                  className="block text-sm font-medium mb-2"
+                >
                   Position Applied For *
                   {initialRole && (
                     <span className="ml-2 inline-flex items-center gap-1 text-xs text-gray-500 font-normal">
@@ -306,8 +401,12 @@ export default function ApplyClient({ initialRole = "", initialJobId = "", jobDe
                   )}
                 </label>
                 <input
-                  type="text" id="role" name="role" required
-                  value={formData.role} onChange={handleChange}
+                  type="text"
+                  id="role"
+                  name="role"
+                  required
+                  value={formData.role}
+                  onChange={handleChange}
                   readOnly={Boolean(initialRole)}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none transition-colors text-white ${
                     initialRole
@@ -321,30 +420,47 @@ export default function ApplyClient({ initialRole = "", initialJobId = "", jobDe
               {/* Employment status */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="currentlyEmployed" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="currentlyEmployed"
+                    className="block text-sm font-medium mb-2"
+                  >
                     Currently Employed? *
                   </label>
                   <select
-                    id="currentlyEmployed" name="currentlyEmployed"
-                    value={formData.currentlyEmployed} onChange={handleChange} onBlur={handleBlur}
+                    id="currentlyEmployed"
+                    name="currentlyEmployed"
+                    value={formData.currentlyEmployed}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
                     className={`w-full px-4 py-3 bg-[#0a0a0a] border rounded-lg focus:outline-none transition-colors text-white appearance-none ${errors.currentlyEmployed ? "border-red-500/70 focus:border-red-500" : "border-white/10 focus:border-[#00AEEF]"}`}
                   >
                     <option value="">Select an option</option>
                     <option value="yes">Yes</option>
                     <option value="no">No — available immediately</option>
                   </select>
-                  {errors.currentlyEmployed && <p className="mt-1.5 text-xs text-red-400">{errors.currentlyEmployed}</p>}
+                  {errors.currentlyEmployed && (
+                    <p className="mt-1.5 text-xs text-red-400">
+                      {errors.currentlyEmployed}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label htmlFor="noticePeriod" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="noticePeriod"
+                    className="block text-sm font-medium mb-2"
+                  >
                     Notice Period
                     {formData.currentlyEmployed !== "yes" && (
-                      <span className="ml-2 text-xs text-gray-500 font-normal">(if applicable)</span>
+                      <span className="ml-2 text-xs text-gray-500 font-normal">
+                        (if applicable)
+                      </span>
                     )}
                   </label>
                   <select
-                    id="noticePeriod" name="noticePeriod"
-                    value={formData.noticePeriod} onChange={handleChange}
+                    id="noticePeriod"
+                    name="noticePeriod"
+                    value={formData.noticePeriod}
+                    onChange={handleChange}
                     disabled={formData.currentlyEmployed === "no"}
                     className="w-full px-4 py-3 bg-[#0a0a0a] border border-white/10 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white appearance-none disabled:opacity-40 disabled:cursor-not-allowed"
                   >
@@ -361,12 +477,18 @@ export default function ApplyClient({ initialRole = "", initialJobId = "", jobDe
               {/* Experience & location */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="yearsOfExperience" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="yearsOfExperience"
+                    className="block text-sm font-medium mb-2"
+                  >
                     Years of Experience *
                   </label>
                   <select
-                    id="yearsOfExperience" name="yearsOfExperience"
-                    value={formData.yearsOfExperience} onChange={handleChange} onBlur={handleBlur}
+                    id="yearsOfExperience"
+                    name="yearsOfExperience"
+                    value={formData.yearsOfExperience}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
                     className={`w-full px-4 py-3 bg-[#0a0a0a] border rounded-lg focus:outline-none transition-colors text-white appearance-none ${errors.yearsOfExperience ? "border-red-500/70 focus:border-red-500" : "border-white/10 focus:border-[#00AEEF]"}`}
                   >
                     <option value="">Select range</option>
@@ -376,19 +498,35 @@ export default function ApplyClient({ initialRole = "", initialJobId = "", jobDe
                     <option value="5-10">5 – 10 years</option>
                     <option value="10+">10+ years</option>
                   </select>
-                  {errors.yearsOfExperience && <p className="mt-1.5 text-xs text-red-400">{errors.yearsOfExperience}</p>}
+                  {errors.yearsOfExperience && (
+                    <p className="mt-1.5 text-xs text-red-400">
+                      {errors.yearsOfExperience}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label htmlFor="location" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="location"
+                    className="block text-sm font-medium mb-2"
+                  >
                     Current Location *
                   </label>
                   <input
-                    type="text" id="location" name="location" required
-                    value={formData.location} onChange={handleChange} onBlur={handleBlur}
+                    type="text"
+                    id="location"
+                    name="location"
+                    required
+                    value={formData.location}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
                     className={`w-full px-4 py-3 bg-[#0a0a0a] border rounded-lg focus:outline-none transition-colors text-white ${errors.location ? "border-red-500/70 focus:border-red-500" : "border-white/10 focus:border-[#00AEEF]"}`}
                     placeholder="e.g. Sarajevo, Bosnia"
                   />
-                  {errors.location && <p className="mt-1.5 text-xs text-red-400">{errors.location}</p>}
+                  {errors.location && (
+                    <p className="mt-1.5 text-xs text-red-400">
+                      {errors.location}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -397,7 +535,9 @@ export default function ApplyClient({ initialRole = "", initialJobId = "", jobDe
                 <div>
                   <label className="block text-sm font-medium mb-3">
                     Skills & Proficiency
-                    <span className="ml-2 text-xs text-gray-500 font-normal">optional — select all that apply</span>
+                    <span className="ml-2 text-xs text-gray-500 font-normal">
+                      optional — select all that apply
+                    </span>
                   </label>
                   <div className="flex flex-wrap gap-3">
                     {requirementOptions.map((option) => {
@@ -446,23 +586,35 @@ export default function ApplyClient({ initialRole = "", initialJobId = "", jobDe
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="linkedin" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="linkedin"
+                    className="block text-sm font-medium mb-2"
+                  >
                     LinkedIn Profile
                   </label>
                   <input
-                    type="url" id="linkedin" name="linkedin"
-                    value={formData.linkedin} onChange={handleChange}
+                    type="url"
+                    id="linkedin"
+                    name="linkedin"
+                    value={formData.linkedin}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 bg-[#0a0a0a] border border-white/10 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white"
                     placeholder="https://linkedin.com/in/..."
                   />
                 </div>
                 <div>
-                  <label htmlFor="portfolio" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="portfolio"
+                    className="block text-sm font-medium mb-2"
+                  >
                     Portfolio / Website
                   </label>
                   <input
-                    type="url" id="portfolio" name="portfolio"
-                    value={formData.portfolio} onChange={handleChange}
+                    type="url"
+                    id="portfolio"
+                    name="portfolio"
+                    value={formData.portfolio}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 bg-[#0a0a0a] border border-white/10 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white"
                     placeholder="https://yourportfolio.com"
                   />
@@ -475,18 +627,28 @@ export default function ApplyClient({ initialRole = "", initialJobId = "", jobDe
                 </label>
                 <div className="relative">
                   <input
-                    type="file" id="cv" name="cv" required
+                    type="file"
+                    id="cv"
+                    name="cv"
+                    required
                     onChange={handleFileChange}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     accept=".pdf"
                   />
-                  <div className={`w-full px-4 py-8 bg-[#0a0a0a] border border-dashed rounded-lg flex flex-col items-center justify-center pointer-events-none ${fileError ? "border-red-500/50" : "border-white/20"}`}>
-                    <Upload className={`mb-2 ${fileError ? "text-red-400" : "text-[#00AEEF]"}`} size={24} />
+                  <div
+                    className={`w-full px-4 py-8 bg-[#0a0a0a] border border-dashed rounded-lg flex flex-col items-center justify-center pointer-events-none ${fileError ? "border-red-500/50" : "border-white/20"}`}
+                  >
+                    <Upload
+                      className={`mb-2 ${fileError ? "text-red-400" : "text-[#00AEEF]"}`}
+                      size={24}
+                    />
                     <p className="text-white mb-1 font-medium">
                       {fileName ? fileName : "Upload your resume"}
                     </p>
                     <p className="text-gray-400 text-sm">
-                      {fileName ? "Click to change file" : "PDF only · max 5 MB"}
+                      {fileName
+                        ? "Click to change file"
+                        : "PDF only · max 5 MB"}
                     </p>
                   </div>
                   {fileError && (
@@ -496,12 +658,17 @@ export default function ApplyClient({ initialRole = "", initialJobId = "", jobDe
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-medium mb-2">
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-medium mb-2"
+                >
                   Cover Letter / Additional Notes
                 </label>
                 <textarea
-                  id="message" name="message"
-                  value={formData.message} onChange={handleChange}
+                  id="message"
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
                   rows={5}
                   className="w-full px-4 py-3 bg-[#0a0a0a] border border-white/10 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white resize-none"
                   placeholder="Tell us why you are a great fit for this role..."
@@ -519,7 +686,9 @@ export default function ApplyClient({ initialRole = "", initialJobId = "", jobDe
                 disabled={submitting || !!fileError}
                 className="w-full px-6 py-4 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-lg hover:scale-105 transition-transform flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                <span>{submitting ? "Submitting..." : "Submit Application"}</span>
+                <span>
+                  {submitting ? "Submitting..." : "Submit Application"}
+                </span>
                 <Send size={20} />
               </button>
             </form>

@@ -1,0 +1,44 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { requireAdmin } from "@/lib/proxy";
+
+// GET /api/admin/dashboard/quick — fast mini-stats for dashboard header
+export async function GET() {
+  const deny = await requireAdmin();
+  if (deny) return deny;
+
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const weekStart = new Date(now);
+  weekStart.setDate(weekStart.getDate() - 6);
+  weekStart.setHours(0, 0, 0, 0);
+
+  try {
+    const [pageViewsToday, pageViewsThisWeek, popupClicksTotal, popupClicksToday, avgDurationRaw] =
+      await Promise.all([
+        prisma.pageView.count({ where: { createdAt: { gte: todayStart } } }),
+        prisma.pageView.count({ where: { createdAt: { gte: weekStart } } }),
+        prisma.popupClick.count(),
+        prisma.popupClick.count({ where: { createdAt: { gte: todayStart } } }),
+        prisma.pageView.aggregate({
+          _avg: { duration: true },
+          where: { duration: { not: null }, createdAt: { gte: weekStart } },
+        }),
+      ]);
+
+    const avgSessionDuration = avgDurationRaw._avg.duration
+      ? Math.round(avgDurationRaw._avg.duration)
+      : null;
+
+    return NextResponse.json({
+      pageViewsToday,
+      pageViewsThisWeek,
+      popupClicksTotal,
+      popupClicksToday,
+      avgSessionDuration,
+    });
+  } catch (err) {
+    console.error("[GET /api/admin/dashboard/quick]", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}

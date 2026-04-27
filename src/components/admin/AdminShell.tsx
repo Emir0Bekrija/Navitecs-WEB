@@ -11,7 +11,6 @@ import {
   MessageSquare,
   Building2,
   FolderKanban,
-  Settings,
   LogOut,
   Menu,
   X,
@@ -20,6 +19,8 @@ import {
   MonitorDot,
   ShieldCheck,
   ScrollText,
+  Megaphone,
+  BarChart2,
 } from "lucide-react";
 
 const BASE_NAV = [
@@ -59,9 +60,14 @@ const BASE_NAV = [
     icon: FolderKanban,
   },
   {
-    href: "/navitecs-control-admin/settings",
-    label: "Settings",
-    icon: Settings,
+    href: "/navitecs-control-admin/popup",
+    label: "Popup",
+    icon: Megaphone,
+  },
+  {
+    href: "/navitecs-control-admin/statistics",
+    label: "Statistics",
+    icon: BarChart2,
   },
 ];
 
@@ -133,7 +139,8 @@ export default function AdminShell({
             : args[0] instanceof URL
               ? args[0].toString()
               : "";
-        if (!url.includes("/api/auth/login")) {
+        // verify-password returns 401 on wrong password — handled by DeleteModal, not here
+        if (!url.includes("/api/auth/login") && !url.includes("/api/admin/verify-password")) {
           router.push("/navitecs-control-admin/login?expired=1");
         }
       }

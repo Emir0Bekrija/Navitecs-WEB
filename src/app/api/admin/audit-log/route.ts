@@ -4,20 +4,38 @@ import { requireSuperAdmin } from "@/lib/proxy";
 
 const PAGE_SIZE = 50;
 
-// GET /api/admin/audit-log — paginated security event log
+// GET /api/admin/audit-log — paginated, filterable security event log
+// Query params: page, action, ip, username, dateFrom (ISO), dateTo (ISO)
 export async function GET(request: NextRequest) {
   const deny = await requireSuperAdmin();
   if (deny) return deny;
 
   const { searchParams } = request.nextUrl;
-  const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
-  const action = searchParams.get("action") ?? undefined;
+  const page     = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
+  const action   = searchParams.get("action")   || undefined;
+  const ip       = searchParams.get("ip")       || undefined;
+  const username = searchParams.get("username") || undefined;
+  const dateFrom = searchParams.get("dateFrom") || undefined;
+  const dateTo   = searchParams.get("dateTo")   || undefined;
+
+  const where = {
+    ...(action   && { action }),
+    ...(ip       && { ip:       { contains: ip } }),
+    ...(username && { username: { contains: username } }),
+    ...((dateFrom || dateTo) && {
+      createdAt: {
+        ...(dateFrom && { gte: new Date(dateFrom) }),
+        ...(dateTo   && { lte: new Date(new Date(dateTo).setHours(23, 59, 59, 999)) }),
+      },
+    }),
+  };
+
   const skip = (page - 1) * PAGE_SIZE;
 
   const [total, logs] = await Promise.all([
-    prisma.auditLog.count({ where: action ? { action } : {} }),
+    prisma.auditLog.count({ where }),
     prisma.auditLog.findMany({
-      where: action ? { action } : {},
+      where,
       orderBy: { createdAt: "desc" },
       skip,
       take: PAGE_SIZE,

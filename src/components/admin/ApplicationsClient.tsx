@@ -2,9 +2,22 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const LinkedinIcon = ({ size = 13, className = "" }: { size?: number; className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+const LinkedinIcon = ({
+  size = 13,
+  className = "",
+}: {
+  size?: number;
+  className?: string;
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={className}
+  >
+    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
   </svg>
 );
 import {
@@ -26,6 +39,7 @@ import {
   Trash2,
   AlertTriangle,
   HelpCircle,
+  Loader2,
 } from "lucide-react";
 import type {
   GroupedApplicant,
@@ -272,17 +286,119 @@ const NOTICE_LABELS: Record<string, string> = {
   other: "Other / flexible",
 };
 
+// ── CV section with deletable toggle ─────────────────────────────────────────
+function CvSection({
+  app,
+  onCvDeleted,
+}: {
+  app: ApplicationEntry;
+  onCvDeleted: () => void;
+}) {
+  const [deletable, setDeletable] = useState(app.cvDeletable);
+  const [togglingDeletable, setTogglingDeletable] = useState(false);
+  const [deletingCv, setDeletingCv] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const displayName = (app.cvFileName ?? "cv.pdf").replace(/^\d{10,}-/, "");
+
+  async function toggleDeletable(checked: boolean) {
+    setTogglingDeletable(true);
+    const res = await fetch(`/api/admin/applications/${app.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cvDeletable: checked }),
+    });
+    if (res.ok) setDeletable(checked);
+    if (!checked) setConfirmDelete(false);
+    setTogglingDeletable(false);
+  }
+
+  async function handleDeleteCv() {
+    setDeletingCv(true);
+    const res = await fetch(`/api/admin/applications/${app.id}/cv`, {
+      method: "DELETE",
+    });
+    setDeletingCv(false);
+    if (res.ok) {
+      setConfirmDelete(false);
+      onCvDeleted();
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      {/* Download link */}
+      <a
+        href={`/api/admin/cv/${app.id}`}
+        download
+        className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#00AEEF]/10 border border-[#00AEEF]/20 text-[#00AEEF] rounded-lg text-xs hover:bg-[#00AEEF]/20 transition-colors"
+      >
+        <FileDown size={13} />
+        Download CV — {displayName}
+      </a>
+
+      {/* Deletable toggle */}
+      <label className="inline-flex items-center  p-2 gap-2 cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={deletable}
+          disabled={togglingDeletable}
+          onChange={(e) => toggleDeletable(e.target.checked)}
+          className="w-3.5 h-3.5 accent-red-500"
+        />
+        <span className="text-xs text-gray-500">Allow CV file deletion</span>
+      </label>
+
+      {/* Delete CV button — only shown when marked deletable */}
+      {deletable && !confirmDelete && (
+        <button
+          onClick={() => setConfirmDelete(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/8 border border-red-500/25 text-red-400 rounded-lg text-xs hover:bg-red-500/18 transition-all"
+        >
+          <Trash2 size={12} />
+          Delete CV file
+        </button>
+      )}
+
+      {/* Inline confirmation */}
+      {deletable && confirmDelete && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-400">
+            Delete &ldquo;{displayName}&rdquo; from disk?
+          </span>
+          <button
+            onClick={handleDeleteCv}
+            disabled={deletingCv}
+            className="px-2.5 py-1 bg-red-500/15 border border-red-500/30 text-red-400 rounded-md text-xs hover:bg-red-500/25 disabled:opacity-50 transition-all"
+          >
+            {deletingCv ? "Deleting…" : "Yes, delete"}
+          </button>
+          <button
+            onClick={() => setConfirmDelete(false)}
+            disabled={deletingCv}
+            className="px-2.5 py-1 border border-white/10 text-gray-400 rounded-md text-xs hover:text-white transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Single application card ───────────────────────────────────────────────────
 function ApplicationCard({
   app,
   applicantName,
   applicantEmail,
   onDeleteClick,
+  onCvDeleted,
 }: {
   app: ApplicationEntry;
   applicantName: string;
   applicantEmail: string;
   onDeleteClick: () => void;
+  onCvDeleted: () => void;
 }) {
   const roleLabel = app.job?.title ?? app.role;
 
@@ -428,18 +544,10 @@ function ApplicationCard({
         </div>
       ) : null}
 
-      {/* CV download */}
-      {app.cvFileName && (
-        <a
-          href={`/api/admin/cv/${encodeURIComponent(app.cvFileName)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#00AEEF]/10 border border-[#00AEEF]/20 text-[#00AEEF] rounded-lg text-xs hover:bg-[#00AEEF]/20 transition-colors"
-        >
-          <FileDown size={13} />
-          View CV — {app.cvFileName.replace(/^\d+-/, "")}
-        </a>
-      )}
+      {/* CV section */}
+      {app.cvFileName ? (
+        <CvSection app={app} onCvDeleted={onCvDeleted} />
+      ) : null}
 
       {/* Cover letter */}
       {app.message && (
@@ -554,7 +662,7 @@ export default function ApplicationsClient() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showMailSetup, setShowMailSetup] = useState(false);
 
-  // Delete confirmation state
+  // Single-application delete confirmation
   const [deleteTarget, setDeleteTarget] = useState<{
     appId: string;
     appName: string;
@@ -563,10 +671,15 @@ export default function ApplicationsClient() {
   } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Bulk CV delete
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [bulkConfirm, setBulkConfirm] = useState(false);
+
   // Filters
   const [jobFilter, setJobFilter] = useState("");
   const [minScore, setMinScore] = useState("");
   const [hasScore, setHasScore] = useState(""); // "" | "yes" | "no"
+  const [hasCV, setHasCV] = useState(""); // "" | "yes" | "no"
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
@@ -583,6 +696,7 @@ export default function ApplicationsClient() {
       if (jobFilter) params.set("jobId", jobFilter);
       if (minScore) params.set("minScore", minScore);
       if (hasScore) params.set("hasScore", hasScore);
+      if (hasCV) params.set("hasCV", hasCV);
       if (dateFrom) params.set("dateFrom", dateFrom);
       if (dateTo) params.set("dateTo", dateTo);
       params.set("page", String(p));
@@ -592,7 +706,7 @@ export default function ApplicationsClient() {
       setResult(data);
       setLoading(false);
     },
-    [jobFilter, minScore, hasScore, dateFrom, dateTo, page],
+    [jobFilter, minScore, hasScore, hasCV, dateFrom, dateTo, page],
   );
 
   useEffect(() => {
@@ -605,6 +719,7 @@ export default function ApplicationsClient() {
     jobFilter,
     minScore,
     hasScore,
+    hasCV,
     dateFrom,
     dateTo,
   });
@@ -614,10 +729,18 @@ export default function ApplicationsClient() {
       prev.jobFilter !== jobFilter ||
       prev.minScore !== minScore ||
       prev.hasScore !== hasScore ||
+      prev.hasCV !== hasCV ||
       prev.dateFrom !== dateFrom ||
       prev.dateTo !== dateTo;
 
-    filtersRef.current = { jobFilter, minScore, hasScore, dateFrom, dateTo };
+    filtersRef.current = {
+      jobFilter,
+      minScore,
+      hasScore,
+      hasCV,
+      dateFrom,
+      dateTo,
+    };
 
     if (filtersChanged) {
       setPage(1);
@@ -638,6 +761,7 @@ export default function ApplicationsClient() {
     setJobFilter("");
     setMinScore("");
     setHasScore("");
+    setHasCV("");
     setDateFrom("");
     setDateTo("");
   }
@@ -701,7 +825,19 @@ export default function ApplicationsClient() {
     }
   }
 
-  const hasFilters = jobFilter || minScore || hasScore || dateFrom || dateTo;
+  async function handleBulkDeleteCvs() {
+    setBulkDeleting(true);
+    const res = await fetch("/api/admin/cv/bulk", { method: "DELETE" });
+    setBulkDeleting(false);
+    setBulkConfirm(false);
+    if (res.ok) {
+      // Refresh the current view so deleted CVs disappear
+      fetchApplications(page);
+    }
+  }
+
+  const hasFilters =
+    jobFilter || minScore || hasScore || hasCV || dateFrom || dateTo;
   const applicants = result?.data ?? [];
 
   return (
@@ -789,6 +925,55 @@ export default function ApplicationsClient() {
               <option value="yes">Has score</option>
               <option value="no">No score yet</option>
             </select>
+          </div>
+        </div>
+
+        {/* Row 1b: CV filter + bulk delete */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+          <div>
+            <label className="text-xs text-gray-500 block mb-1">CV file</label>
+            <select
+              value={hasCV}
+              onChange={(e) => setHasCV(e.target.value)}
+              className="w-full bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00AEEF]/50 appearance-none"
+            >
+              <option value="">Any</option>
+              <option value="yes">Has CV</option>
+              <option value="no">No CV</option>
+              <option value="deletable">Selected for deletion</option>
+            </select>
+          </div>
+          <div className="flex items-end">
+            {!bulkConfirm ? (
+              <button
+                type="button"
+                onClick={() => setBulkConfirm(true)}
+                className="flex items-center gap-1.5 px-3 py-2 bg-red-500/8 border border-red-500/25 text-red-400 rounded-lg text-xs hover:bg-red-500/18 transition-all whitespace-nowrap"
+              >
+                <Trash2 size={13} />
+                Delete all selected CVs
+              </button>
+            ) : (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-gray-400">Delete all CVs marked for deletion?</span>
+                <button
+                  type="button"
+                  onClick={handleBulkDeleteCvs}
+                  disabled={bulkDeleting}
+                  className="px-2.5 py-1 bg-red-500/15 border border-red-500/30 text-red-400 rounded-md text-xs hover:bg-red-500/25 disabled:opacity-50 transition-all flex items-center gap-1.5"
+                >
+                  {bulkDeleting ? <><Loader2 size={11} className="animate-spin" />Deleting…</> : "Yes, delete"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBulkConfirm(false)}
+                  disabled={bulkDeleting}
+                  className="px-2.5 py-1 border border-white/10 text-gray-400 rounded-md text-xs hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -984,6 +1169,32 @@ export default function ApplicationsClient() {
                                 appRole: app.job?.title ?? app.role,
                                 applicantId: applicant.id,
                               })
+                            }
+                            onCvDeleted={() =>
+                              setResult((prev) =>
+                                prev
+                                  ? {
+                                      ...prev,
+                                      data: prev.data.map((a) =>
+                                        a.id === applicant.id
+                                          ? {
+                                              ...a,
+                                              applications: a.applications.map(
+                                                (x) =>
+                                                  x.id === app.id
+                                                    ? {
+                                                        ...x,
+                                                        cvFileName: null,
+                                                        cvDeletable: false,
+                                                      }
+                                                    : x,
+                                              ),
+                                            }
+                                          : a,
+                                      ),
+                                    }
+                                  : prev,
+                              )
                             }
                           />
                         ))}

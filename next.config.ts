@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
     "@prisma/adapter-mariadb",
     "@prisma/client",
     "bcryptjs",
+    "geoip-lite",
   ],
 };
 

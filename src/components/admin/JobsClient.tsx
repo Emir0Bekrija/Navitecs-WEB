@@ -191,6 +191,7 @@ export default function JobsClient() {
           itemName={pendingDelete.title}
           onConfirm={() => confirmDelete(pendingDelete.id)}
           onClose={() => setPendingDelete(null)}
+          actionHint={`delete_job:${pendingDelete.id}`}
         />
       )}
     </div>

@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { CustomCursor } from "@/components/CustomCursor";
+import PromoPopup from "@/components/PromoPopup";
 
 export default function RootLayoutWrapper({
   children,
@@ -24,6 +25,7 @@ export default function RootLayoutWrapper({
       <Navigation />
       <main className="pt-20">{children}</main>
       <Footer />
+      <PromoPopup />
     </>
   );
 }
