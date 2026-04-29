@@ -65,7 +65,6 @@
     "react-dom": "^19.2.5",
     "react-hook-form": "^7.73.1",
     "react-is": "^19.2.5",
-    "react-popper": "2.3.0",
     "react-responsive-masonry": "^2.7.2",
     "react-slick": "0.31.0",
     "recharts": "^3.8.1",
