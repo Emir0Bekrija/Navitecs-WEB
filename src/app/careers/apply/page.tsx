@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import ApplyClient from "../../../components/pages/ApplyClient";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Apply Now",
   description: "Submit your application to join the NAVITECS team.",

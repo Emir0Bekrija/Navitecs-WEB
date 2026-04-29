@@ -5,6 +5,8 @@ import { getSiteSettings } from "@/lib/siteSettings";
 import type { Project, MediaItem } from "@/types/index";
 import type { ContentBlock } from "@/lib/blocks";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Projects",
   description:

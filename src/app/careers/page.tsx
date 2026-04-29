@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import CareersClient from "../../components/pages/CareersClient";
 import { prisma } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Careers",
   description: "Join our team. Check out the latest job openings at NAVITECS.",
