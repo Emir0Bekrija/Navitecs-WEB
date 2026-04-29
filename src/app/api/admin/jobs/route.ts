@@ -12,6 +12,7 @@ const JobSchema = z.object({
   description: z.string().min(1),
   requirements: z.array(z.string().max(200)).optional().default([]),
   active: z.boolean().optional().default(true),
+  isGeneral: z.boolean().optional().default(false),
 });
 
 // GET /api/admin/jobs

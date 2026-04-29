@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import Link from "next/link";
 import { ArrowLeft, Save, Loader2, Plus, X, ExternalLink } from "lucide-react";
 import BlockEditor from "./BlockEditor";
@@ -138,6 +139,17 @@ export default function ProjectFormClient({ projectId }: Props) {
   const [error, setError] = useState("");
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
 
+  // For the "new project" flow: collect pending File objects keyed by their blob URL.
+  // Images are only uploaded to the server when "Create Project" is clicked.
+  const pendingFiles = useRef(new Map<string, File>());
+
+  function handlePendingFile(blobUrl: string, file: File) {
+    pendingFiles.current.set(blobUrl, file);
+  }
+  function handleClearPending(blobUrl: string) {
+    pendingFiles.current.delete(blobUrl);
+  }
+
   useEffect(() => {
     if (!projectId) return;
     fetch(`/api/admin/projects/${projectId}`)
@@ -213,6 +225,43 @@ export default function ProjectFormClient({ projectId }: Props) {
       seoDescription: form.seoDescription,
     };
 
+    // ── For new projects: upload all pending images now, then replace blob URLs ──
+    if (!isEdit && pendingFiles.current.size > 0) {
+      const urlReplacements = new Map<string, string>();
+
+      for (const [blobUrl, file] of pendingFiles.current.entries()) {
+        const fd = new FormData();
+        fd.append("image", file);
+        const uploadRes = await fetch("/api/admin/images", { method: "POST", body: fd });
+        const uploadData = await uploadRes.json().catch(() => ({}));
+        if (!uploadRes.ok) {
+          setError(uploadData.error ?? "Image upload failed");
+          setSaving(false);
+          return; // leave blob URLs intact so the user can retry
+        }
+        urlReplacements.set(blobUrl, uploadData.url as string);
+      }
+
+      // Replace blob URLs in payload fields
+      if (payload.featuredImage && urlReplacements.has(payload.featuredImage)) {
+        payload.featuredImage = urlReplacements.get(payload.featuredImage)!;
+      }
+      payload.media = payload.media.map((m) => ({
+        ...m,
+        url: urlReplacements.get(m.url) ?? m.url,
+      }));
+      payload.contentBlocks = replaceBlobUrlsInBlocks(
+        payload.contentBlocks,
+        urlReplacements,
+      );
+
+      // All uploads succeeded — clean up
+      for (const blobUrl of urlReplacements.keys()) {
+        URL.revokeObjectURL(blobUrl);
+      }
+      pendingFiles.current.clear();
+    }
+
     const url    = isEdit ? `/api/admin/projects/${projectId}` : "/api/admin/projects";
     const method = isEdit ? "PUT" : "POST";
 
@@ -223,12 +272,46 @@ export default function ProjectFormClient({ projectId }: Props) {
     });
 
     if (res.ok) {
+      toast.success(projectId ? "Project saved" : "Project created");
       router.push("/navitecs-control-admin/projects");
     } else {
       const data = await res.json();
       setError(typeof data.error === "string" ? data.error : "Save failed");
       setSaving(false);
     }
+  }
+
+  // ── Helper: replace blob:// URLs inside content blocks ──────────────────────
+
+  function replaceBlobUrlsInBlocks(
+    blocks: typeof form.contentBlocks,
+    replacements: Map<string, string>,
+  ): typeof form.contentBlocks {
+    return blocks.map((block) => ({
+      ...block,
+      data: replaceBlobUrlsInData(block.data, replacements),
+    }));
+  }
+
+  function replaceBlobUrlsInData(
+    data: Record<string, unknown>,
+    replacements: Map<string, string>,
+  ): Record<string, unknown> {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (typeof value === "string" && replacements.has(value)) {
+        result[key] = replacements.get(value)!;
+      } else if (Array.isArray(value)) {
+        result[key] = value.map((item) =>
+          item !== null && typeof item === "object"
+            ? replaceBlobUrlsInData(item as Record<string, unknown>, replacements)
+            : item,
+        );
+      } else {
+        result[key] = value;
+      }
+    }
+    return result;
   }
 
   if (loading) {
@@ -318,6 +401,9 @@ export default function ProjectFormClient({ projectId }: Props) {
             hint="Used as the hero image on the project page and thumbnail in the listing."
             value={form.featuredImage}
             onChange={(url) => setForm((p) => ({ ...p, featuredImage: url }))}
+            deferred={!isEdit}
+            onPendingFile={handlePendingFile}
+            onClearPending={handleClearPending}
           />
         </div>
 
@@ -418,6 +504,9 @@ export default function ProjectFormClient({ projectId }: Props) {
           <BlockEditor
             blocks={form.contentBlocks}
             onChange={(blocks) => setForm((prev) => ({ ...prev, contentBlocks: blocks }))}
+            deferred={!isEdit}
+            onPendingFile={handlePendingFile}
+            onClearPending={handleClearPending}
           />
         </div>
 

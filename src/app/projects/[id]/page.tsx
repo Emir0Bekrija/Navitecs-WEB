@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import ProjectDetailsClient from "../../../components/pages/ProjectDetailsClient";
 import { prisma } from "@/lib/db";
+import { getSiteSettings } from "@/lib/siteSettings";
 import type { Project, MediaItem } from "@/types/index";
 import type { ContentBlock } from "@/lib/blocks";
 
@@ -25,6 +26,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const { id } = await params;
+
+  const settings = await getSiteSettings();
+  if (settings.projectsComingSoon) redirect("/projects");
 
   const p = await prisma.project.findUnique({ where: { id } });
   if (!p || p.status === "draft") notFound();

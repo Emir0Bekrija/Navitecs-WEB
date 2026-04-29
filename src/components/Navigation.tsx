@@ -39,6 +39,7 @@ export default function Navigation() {
                 src={logo}
                 alt="NAVITECS Logo"
                 className="relative z-10 h-10 w-50 object-contain"
+                loading="eager"
                 priority
               />
             </div>

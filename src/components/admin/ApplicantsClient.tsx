@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import {
   ChevronDown,
   ChevronUp,
@@ -153,6 +154,7 @@ function RankingPanel({
     if (res.ok) {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+      toast.success("Review saved");
       onSaved({
         score,
         comments: comments || null,
@@ -529,6 +531,7 @@ export default function ApplicantsClient() {
                             day: "numeric",
                             month: "short",
                             year: "numeric",
+                            timeZone: "Europe/Sarajevo",
                           })}
                         </span>
                       )}
@@ -538,6 +541,7 @@ export default function ApplicantsClient() {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
+                          timeZone: "Europe/Sarajevo",
                         })}
                       </span>
                     </div>
@@ -596,10 +600,12 @@ export default function ApplicantsClient() {
                                       day: "numeric",
                                       month: "short",
                                       year: "numeric",
+                                      timeZone: "Europe/Sarajevo",
                                     })}{" "}
                                     {new Date(app.submittedAt).toLocaleTimeString("en-GB", {
                                       hour: "2-digit",
                                       minute: "2-digit",
+                                      timeZone: "Europe/Sarajevo",
                                     })}
                                   </span>
                                 </div>

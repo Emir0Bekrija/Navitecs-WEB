@@ -51,6 +51,7 @@ export default function ApplyClient({
   const [bimSoftware, setBimSoftware] = useState<string[]>([]);
   const [otherBim, setOtherBim] = useState(false);
   const [otherBimText, setOtherBimText] = useState("");
+  const [consents, setConsents] = useState({ dataSharing: false, futureUse: false });
 
   const requirementOptions = jobDetails?.requirements ?? [];
 
@@ -125,8 +126,12 @@ export default function ApplyClient({
       );
       if (msg) newErrors[field] = msg;
     }
+    if (!consents.dataSharing) newErrors.consentDataSharing = "You must consent to the processing of your personal data.";
+    if (!consents.futureUse)   newErrors.consentFutureUse   = "You must agree to data retention for future opportunities.";
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      //window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
@@ -139,6 +144,8 @@ export default function ApplyClient({
     // Append text fields
     Object.entries(formData).forEach(([k, v]) => data.append(k, v));
     if (initialJobId) data.append("jobId", initialJobId);
+    data.append("consentDataSharing", String(consents.dataSharing));
+    data.append("consentFutureUse",   String(consents.futureUse));
     const allBim = [
       ...bimSoftware,
       ...(otherBim && otherBimText.trim() ? [otherBimText.trim()] : []),
@@ -158,10 +165,12 @@ export default function ApplyClient({
     if (!res.ok) {
       const json = (await res.json().catch(() => ({}))) as { error?: string };
       setSubmitError(json.error ?? "Something went wrong. Please try again.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
     setFormSubmitted(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
     setTimeout(() => {
       setFormSubmitted(false);
@@ -182,6 +191,7 @@ export default function ApplyClient({
       setBimSoftware([]);
       setOtherBim(false);
       setOtherBimText("");
+      setConsents({ dataSharing: false, futureUse: false });
       setFileName(null);
       setErrors({});
       if (fileInput) fileInput.value = "";
@@ -673,6 +683,54 @@ export default function ApplyClient({
                   className="w-full px-4 py-3 bg-[#0a0a0a] border border-white/10 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white resize-none"
                   placeholder="Tell us why you are a great fit for this role..."
                 />
+              </div>
+
+              {/* Legal consent */}
+              <div className="space-y-4 p-5 bg-[#0a0a0a] border border-white/10 rounded-xl">
+                <p className="text-sm font-medium text-gray-200">Legal consent *</p>
+
+                <div className="space-y-1">
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={consents.dataSharing}
+                      onChange={(e) => {
+                        setConsents((prev) => ({ ...prev, dataSharing: e.target.checked }));
+                        if (e.target.checked) setErrors((prev) => ({ ...prev, consentDataSharing: "" }));
+                      }}
+                      className="mt-0.5 w-4 h-4 shrink-0 accent-[#00AEEF] cursor-pointer"
+                    />
+                    <span className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors leading-relaxed">
+                      I consent to NAVITECS collecting and processing my personal data (name, email, phone number, and CV) 
+                      for the purpose of evaluating my job application and responding to my inquiry, in accordance with the{" "}
+                       <a href="/privacy-policy" className="underline underline-offset-2 hover:text-white transition-colors">Privacy Policy</a>.
+                    </span>
+                  </label>
+                  {errors.consentDataSharing && (
+                    <p className="ml-7 text-xs text-red-400">{errors.consentDataSharing}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={consents.futureUse}
+                      onChange={(e) => {
+                        setConsents((prev) => ({ ...prev, futureUse: e.target.checked }));
+                        if (e.target.checked) setErrors((prev) => ({ ...prev, consentFutureUse: "" }));
+                      }}
+                      className="mt-0.5 w-4 h-4 shrink-0 accent-[#00AEEF] cursor-pointer"
+                    />
+                    <span className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors leading-relaxed">
+                      I agree that my personal data may be processed for candidate selection purposes and securely stored for up to 12 months, 
+                      and that it may be used to contact me regarding future job opportunities at NAVITECS, in accordance with the Privacy Policy.
+                    </span>
+                  </label>
+                  {errors.consentFutureUse && (
+                    <p className="ml-7 text-xs text-red-400">{errors.consentFutureUse}</p>
+                  )}
+                </div>
               </div>
 
               {submitError && (

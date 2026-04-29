@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/proxy";
+import { tzStartOfDay, tzEndOfDay } from "@/lib/dateUtils";
+
+const BUSINESS_TZ = "Europe/Sarajevo";
 
 function toDayKey(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: BUSINESS_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "00";
+  return `${get("year")}-${get("month")}-${get("day")}`;
 }
 
 function groupByDay(dates: Date[]): { day: string; count: number }[] {
@@ -32,8 +42,13 @@ function groupByField(values: (string | null | undefined)[], topN = 8): { label:
 function groupByHour(dates: Date[]): { hour: number; count: number }[] {
   const map = new Map<number, number>();
   for (let h = 0; h < 24; h++) map.set(h, 0);
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: BUSINESS_TZ,
+    hour: "numeric",
+    hour12: false,
+  });
   for (const d of dates) {
-    const h = d.getHours();
+    const h = parseInt(fmt.format(d)) % 24; // Intl may return 24 for midnight
     map.set(h, (map.get(h) ?? 0) + 1);
   }
   return Array.from(map.entries())
@@ -50,8 +65,8 @@ export async function GET(request: NextRequest) {
   const fromParam = searchParams.get("from");
   const toParam = searchParams.get("to");
 
-  const from = fromParam ? new Date(fromParam) : new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
-  const to = toParam ? new Date(toParam + "T23:59:59") : new Date();
+  const from = fromParam ? tzStartOfDay(fromParam) : new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+  const to = toParam ? tzEndOfDay(toParam) : new Date();
 
   try {
     const [applications, contacts, pageViews, popupClicks, avgDurationRaw]: [

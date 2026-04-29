@@ -31,7 +31,7 @@ export default async function Page({ searchParams }: Props) {
   let jobDetails: JobDetails | null = null;
   if (jobId) {
     const job = await prisma.job.findUnique({
-      where: { id: jobId, active: true },
+      where: { id: jobId },
       select: {
         title: true,
         summary: true,

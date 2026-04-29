@@ -484,14 +484,14 @@ export default function CompanyContactsClient() {
                         <span className="flex items-center gap-1">
                           <Calendar size={11} />
                           {new Date(mostRecent.submittedAt).toLocaleDateString("en-GB", {
-                            day: "numeric", month: "short", year: "numeric",
+                            day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Sarajevo",
                           })}
                         </span>
                       )}
                       <span className="text-gray-600">
                         First contact{" "}
                         {new Date(contact.createdAt).toLocaleDateString("en-GB", {
-                          day: "numeric", month: "short", year: "numeric",
+                          day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Sarajevo",
                         })}
                       </span>
                     </div>
@@ -561,10 +561,10 @@ export default function CompanyContactsClient() {
                                   </div>
                                   <span className="text-xs text-gray-500 shrink-0">
                                     {new Date(sub.submittedAt).toLocaleDateString("en-GB", {
-                                      day: "numeric", month: "short", year: "numeric",
+                                      day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Sarajevo",
                                     })}{" "}
                                     {new Date(sub.submittedAt).toLocaleTimeString("en-GB", {
-                                      hour: "2-digit", minute: "2-digit",
+                                      hour: "2-digit", minute: "2-digit", timeZone: "Europe/Sarajevo",
                                     })}
                                   </span>
                                 </div>

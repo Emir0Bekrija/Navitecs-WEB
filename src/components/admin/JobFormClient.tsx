@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import Link from "next/link";
 import { ArrowLeft, Save, Loader2, Plus, X } from "lucide-react";
 import type { Job } from "@/types/index";
@@ -27,6 +28,7 @@ export default function JobFormClient({ jobId }: Props) {
     type: "Full-time",
     description: "",
     active: true,
+    isGeneral: false,
     requirements: [""] as string[],
   });
 
@@ -43,6 +45,7 @@ export default function JobFormClient({ jobId }: Props) {
           type: job.type,
           description: job.description,
           active: job.active,
+          isGeneral: job.isGeneral ?? false,
           requirements: job.requirements && job.requirements.length > 0 ? job.requirements : [""],
         });
         setLoading(false);
@@ -101,6 +104,7 @@ export default function JobFormClient({ jobId }: Props) {
     });
 
     if (res.ok) {
+      toast.success(isEdit ? "Job saved" : "Job created");
       router.push("/navitecs-control-admin/jobs");
     } else {
       const data = await res.json();
@@ -294,6 +298,23 @@ export default function JobFormClient({ jobId }: Props) {
           />
           <label htmlFor="active" className="text-sm text-gray-300">
             Publish this job (visible to applicants)
+          </label>
+        </div>
+
+        <div className="flex items-start gap-3 px-4 py-3 bg-amber-500/5 border border-amber-500/20 rounded-lg">
+          <input
+            type="checkbox"
+            id="isGeneral"
+            name="isGeneral"
+            checked={form.isGeneral}
+            onChange={handleChange}
+            className="w-4 h-4 accent-amber-400 mt-0.5 shrink-0"
+          />
+          <label htmlFor="isGeneral" className="text-sm text-gray-300 cursor-pointer">
+            <span className="font-medium text-amber-300">General Application</span>
+            <span className="block text-xs text-gray-500 mt-0.5">
+              Hidden from the open positions list. Linked to the &ldquo;Don&apos;t See Your Role?&rdquo; button on the careers page.
+            </span>
           </label>
         </div>
 

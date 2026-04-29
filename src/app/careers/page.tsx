@@ -17,10 +17,11 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const rows = await prisma.job.findMany({
-    where: { active: true },
-    orderBy: { order: "asc" },
-  });
+  const [rows, generalJob] = await Promise.all([
+    prisma.job.findMany({ where: { active: true, isGeneral: false }, orderBy: { order: "asc" } }),
+    prisma.job.findFirst({ where: { isGeneral: true, active: true } }),
+  ]);
+
   const jobs = rows.map((j) => ({
     id: j.id,
     title: j.title,
@@ -30,7 +31,9 @@ export default async function Page() {
     description: j.description,
     summary: j.summary,
     active: j.active,
+    isGeneral: j.isGeneral,
     createdAt: j.createdAt.toISOString(),
   }));
-  return <CareersClient initialJobs={jobs} />;
+
+  return <CareersClient initialJobs={jobs} generalJobId={generalJob?.id ?? null} />;
 }

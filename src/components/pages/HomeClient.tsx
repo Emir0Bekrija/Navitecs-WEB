@@ -44,17 +44,16 @@ export default function HomeClient() {
   ];
 
   const industries = [
-    "Residential Construction",
-    "Commercial Buildings",
-    "Infrastructure Projects",
-    "Real Estate Development",
+    "AEC, Architectural Electrical and Construction",
+    "Infrastructure and Public Works",
+    "Industrial and Process Plants",
+    "Specialized Sectors and Services",
   ];
 
   const stats = [
-    { value: "500+", label: "Projects Delivered" },
-    { value: "15+", label: "Years Experience" },
-    { value: "100%", label: "BIM Coordination" },
-    { value: "50+", label: "Active Clients" },
+    { value: "300+", label: "Projects Delivered" },
+    { value: "10+", label: "Years Experience" },
+    { value: "30+", label: "Active Clients" },
   ];
 
   const whyBIM = [

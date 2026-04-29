@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import {
   Save,
   Loader2,
@@ -13,7 +14,15 @@ import {
   Link as LinkIcon,
   X,
   ArrowRight,
+  BookMarked,
+  Plus,
+  Download,
+  Pencil,
+  Trash2,
+  Check,
 } from "lucide-react";
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 type PopupConfig = {
   enabled: boolean;
@@ -26,6 +35,22 @@ type PopupConfig = {
   linkType: "internal" | "external";
   openInNewTab: boolean;
 };
+
+type PopupTemplate = {
+  id: number;
+  name: string;
+  badge: string;
+  category: string;
+  title: string;
+  description: string;
+  buttonText: string;
+  linkUrl: string;
+  linkType: "internal" | "external";
+  openInNewTab: boolean;
+  createdAt: string;
+};
+
+// ── Constants ─────────────────────────────────────────────────────────────────
 
 const DEFAULT: PopupConfig = {
   enabled: false,
@@ -44,6 +69,17 @@ const inputClass =
   "w-full px-4 py-3 bg-black border border-white/15 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white placeholder-gray-600 text-sm";
 const labelClass = "block text-sm font-medium text-gray-300 mb-2";
 
+// ── Content fields shared between config and template ─────────────────────────
+
+type ContentFields = Omit<PopupConfig, "enabled">;
+
+function contentFromConfig(cfg: PopupConfig): ContentFields {
+  const { enabled: _e, ...rest } = cfg;
+  return rest;
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
 export default function PopupSettingsClient() {
   const [form, setForm] = useState<PopupConfig>(DEFAULT);
   const [loading, setLoading] = useState(true);
@@ -51,6 +87,18 @@ export default function PopupSettingsClient() {
   const [saveStatus, setSaveStatus] = useState<"idle" | "ok" | "error">("idle");
   const [previewVisible, setPreviewVisible] = useState(false);
 
+  // Templates state
+  const [templates, setTemplates] = useState<PopupTemplate[]>([]);
+  const [templatesLoading, setTemplatesLoading] = useState(true);
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [newTemplateName, setNewTemplateName] = useState("");
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [renamingId, setRenamingId] = useState<number | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  // Load popup config
   useEffect(() => {
     fetch("/api/admin/popup")
       .then((r) => r.json())
@@ -60,6 +108,22 @@ export default function PopupSettingsClient() {
       })
       .catch(() => setLoading(false));
   }, []);
+
+  // Load templates
+  useEffect(() => {
+    fetch("/api/admin/popup/templates")
+      .then((r) => r.json())
+      .then((data: PopupTemplate[]) => {
+        setTemplates(data);
+        setTemplatesLoading(false);
+      })
+      .catch(() => setTemplatesLoading(false));
+  }, []);
+
+  // Focus name input when save-template form opens
+  useEffect(() => {
+    if (showSaveTemplate) nameInputRef.current?.focus();
+  }, [showSaveTemplate]);
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
@@ -81,9 +145,92 @@ export default function PopupSettingsClient() {
       body: JSON.stringify(form),
     });
     setSaving(false);
-    setSaveStatus(res.ok ? "ok" : "error");
-    if (res.ok) setTimeout(() => setSaveStatus("idle"), 3000);
+    if (res.ok) {
+      setSaveStatus("ok");
+      toast.success("Popup saved");
+      setTimeout(() => setSaveStatus("idle"), 3000);
+    } else {
+      setSaveStatus("error");
+    }
   }
+
+  // ── Template actions ───────────────────────────────────────────────────────
+
+  function loadTemplate(t: PopupTemplate) {
+    setForm((prev) => ({
+      enabled: prev.enabled, // keep live toggle
+      badge: t.badge,
+      category: t.category,
+      title: t.title,
+      description: t.description,
+      buttonText: t.buttonText,
+      linkUrl: t.linkUrl,
+      linkType: t.linkType,
+      openInNewTab: t.openInNewTab,
+    }));
+  }
+
+  async function saveAsTemplate() {
+    const name = newTemplateName.trim();
+    if (!name) {
+      nameInputRef.current?.focus();
+      return;
+    }
+    setSavingTemplate(true);
+    const res = await fetch("/api/admin/popup/templates", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, ...contentFromConfig(form) }),
+    });
+    setSavingTemplate(false);
+    if (res.ok) {
+      const created: PopupTemplate = await res.json();
+      setTemplates((prev) => [created, ...prev]);
+      setNewTemplateName("");
+      setShowSaveTemplate(false);
+    }
+  }
+
+  async function overwriteTemplate(t: PopupTemplate) {
+    const res = await fetch(`/api/admin/popup/templates/${t.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(contentFromConfig(form)),
+    });
+    if (res.ok) {
+      const updated: PopupTemplate = await res.json();
+      setTemplates((prev) => prev.map((x) => (x.id === t.id ? updated : x)));
+      toast.success(`Template "${t.name}" updated`);
+    } else {
+      toast.error("Failed to update template");
+    }
+  }
+
+  async function renameTemplate(id: number) {
+    const name = renameValue.trim();
+    if (!name) return;
+    const res = await fetch(`/api/admin/popup/templates/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    if (res.ok) {
+      const updated: PopupTemplate = await res.json();
+      setTemplates((prev) => prev.map((x) => (x.id === id ? updated : x)));
+    }
+    setRenamingId(null);
+  }
+
+  async function deleteTemplate(id: number) {
+    setDeletingId(id);
+    const res = await fetch(`/api/admin/popup/templates/${id}`, { method: "DELETE" });
+    setDeletingId(null);
+    if (res.ok) {
+      setTemplates((prev) => prev.filter((t) => t.id !== id));
+    }
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   if (loading) {
     return (
@@ -102,6 +249,153 @@ export default function PopupSettingsClient() {
         </p>
       </div>
 
+      {/* ── Templates ─────────────────────────────────────────────────────── */}
+      <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BookMarked size={15} className="text-[#00AEEF]" />
+            <h3 className="text-sm font-semibold text-white">Templates</h3>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowSaveTemplate((v) => !v)}
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition-colors"
+          >
+            <Plus size={12} />
+            Save current as template
+          </button>
+        </div>
+
+        {/* Save-as-template inline form */}
+        {showSaveTemplate && (
+          <div className="flex gap-2">
+            <input
+              ref={nameInputRef}
+              value={newTemplateName}
+              onChange={(e) => setNewTemplateName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") saveAsTemplate();
+                if (e.key === "Escape") setShowSaveTemplate(false);
+              }}
+              placeholder="Template name…"
+              maxLength={100}
+              className="flex-1 px-3 py-2 bg-black border border-white/15 rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#00AEEF] transition-colors"
+            />
+            <button
+              type="button"
+              onClick={saveAsTemplate}
+              disabled={savingTemplate}
+              className="flex items-center gap-1.5 px-4 py-2 bg-[#00AEEF]/10 border border-[#00AEEF]/30 text-[#00AEEF] rounded-lg text-sm hover:bg-[#00AEEF]/20 disabled:opacity-50 transition-colors"
+            >
+              {savingTemplate ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowSaveTemplate(false)}
+              className="px-3 py-2 text-gray-600 hover:text-white transition-colors"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
+
+        {/* Template list */}
+        {templatesLoading ? (
+          <div className="flex justify-center py-4">
+            <Loader2 size={18} className="animate-spin text-gray-600" />
+          </div>
+        ) : templates.length === 0 ? (
+          <p className="text-sm text-gray-600 text-center py-4">
+            No templates yet. Fill in the form below and save it as a template.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {templates.map((t) => (
+              <li
+                key={t.id}
+                className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-black/40 border border-white/[0.06] group"
+              >
+                {/* Name / rename */}
+                {renamingId === t.id ? (
+                  <input
+                    autoFocus
+                    value={renameValue}
+                    onChange={(e) => setRenameValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") renameTemplate(t.id);
+                      if (e.key === "Escape") setRenamingId(null);
+                    }}
+                    onBlur={() => renameTemplate(t.id)}
+                    maxLength={100}
+                    className="flex-1 bg-transparent border-b border-[#00AEEF] text-white text-sm focus:outline-none py-0.5"
+                  />
+                ) : (
+                  <span className="flex-1 text-sm text-white truncate">{t.name}</span>
+                )}
+
+                {/* Actions */}
+                <div className="flex items-center gap-1 shrink-0">
+                  {/* Rename */}
+                  {renamingId === t.id ? (
+                    <button
+                      type="button"
+                      onClick={() => renameTemplate(t.id)}
+                      className="p-1.5 rounded-md text-[#00FF9C] hover:bg-white/5 transition-colors"
+                      title="Confirm rename"
+                    >
+                      <Check size={13} />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => { setRenamingId(t.id); setRenameValue(t.name); }}
+                      className="p-1.5 rounded-md text-gray-600 hover:text-gray-300 opacity-0 group-hover:opacity-100 transition-all"
+                      title="Rename"
+                    >
+                      <Pencil size={13} />
+                    </button>
+                  )}
+
+                  {/* Overwrite with current form */}
+                  <button
+                    type="button"
+                    onClick={() => overwriteTemplate(t)}
+                    className="p-1.5 rounded-md text-gray-600 hover:text-[#00AEEF] opacity-0 group-hover:opacity-100 transition-all"
+                    title="Update template with current form values"
+                  >
+                    <Save size={13} />
+                  </button>
+
+                  {/* Load into form */}
+                  <button
+                    type="button"
+                    onClick={() => loadTemplate(t)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-[#00AEEF] border border-[#00AEEF]/30 hover:bg-[#00AEEF]/10 transition-colors"
+                    title="Load this template into the form"
+                  >
+                    <Download size={11} />
+                    Load
+                  </button>
+
+                  {/* Delete */}
+                  <button
+                    type="button"
+                    onClick={() => deleteTemplate(t.id)}
+                    disabled={deletingId === t.id}
+                    className="p-1.5 rounded-md text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
+                    title="Delete template"
+                  >
+                    {deletingId === t.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* ── Main form ─────────────────────────────────────────────────────── */}
       <form onSubmit={handleSave} className="space-y-6">
         {/* Enable/disable */}
         <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6">

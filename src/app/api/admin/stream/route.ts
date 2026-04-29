@@ -30,8 +30,8 @@ export async function GET() {
 
       const heartbeat = setInterval(() => send("heartbeat", {}), 25_000);
 
-      const onApplication = () => send("new_application", {});
-      const onContact = () => send("new_contact", {});
+      const onApplication = (data: Record<string, unknown>) => send("new_application", data);
+      const onContact = (data: Record<string, unknown>) => send("new_contact", data);
 
       adminEvents.on("new_application", onApplication);
       adminEvents.on("new_contact", onContact);

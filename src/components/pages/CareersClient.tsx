@@ -24,10 +24,12 @@ import type { Job } from "@/types/index";
 
 type CareersClientProps = {
   initialJobs?: Job[];
+  generalJobId?: string | null;
 };
 
 export default function CareersClient({
   initialJobs = [],
+  generalJobId,
 }: CareersClientProps) {
   usePageView();
   const jobs = initialJobs;
@@ -186,6 +188,7 @@ export default function CareersClient({
         </div>
       </section>
 
+      {/*
       <section className="py-24 bg-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div
@@ -225,6 +228,7 @@ export default function CareersClient({
           </div>
         </div>
       </section>
+      */}
 
       <section className="py-24">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -341,7 +345,7 @@ export default function CareersClient({
             </p>
             <div className="relative inline-flex bg-black/50 border border-white/15 hover:border-white/30 hover:bg-black rounded-lg shadow-lg">
               <Link
-                href="/contact#conversation"
+                href={`/careers/apply?role=General+Application${generalJobId ? `&jobId=${encodeURIComponent(generalJobId)}` : ""}`}
                 className="relative z-10 inline-flex items-center px-8 py-4 text-white font-semibold rounded-lg transition-all"
               >
                 <span>Get in Touch</span>

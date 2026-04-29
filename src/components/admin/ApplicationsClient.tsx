@@ -40,6 +40,10 @@ import {
   AlertTriangle,
   HelpCircle,
   Loader2,
+  Download,
+  Clock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import type {
   GroupedApplicant,
@@ -412,6 +416,7 @@ function ApplicationCard({
             {new Date(app.submittedAt).toLocaleString("en-GB", {
               dateStyle: "long",
               timeStyle: "short",
+              timeZone: "Europe/Sarajevo",
             })}
           </p>
         </div>
@@ -654,6 +659,202 @@ function Pagination({
   );
 }
 
+// ── Export modal ──────────────────────────────────────────────────────────────
+function ExportModal({ onClose }: { onClose: () => void }) {
+  const [mode, setMode] = useState<"stale" | "range">("stale");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  async function handleExport() {
+    if (!password) { setError("Password is required."); return; }
+    if (mode === "range" && !dateFrom && !dateTo) {
+      setError("Please select at least one date for the custom range.");
+      return;
+    }
+    setError(null);
+    setLoading(true);
+
+    const res = await fetch("/api/admin/applications/export", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password, mode, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined }),
+    });
+
+    setLoading(false);
+
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({})) as { error?: string };
+      setError(json.error ?? "Export failed. Please try again.");
+      return;
+    }
+
+    // Trigger file download
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "applications_export.zip";
+    a.click();
+    URL.revokeObjectURL(url);
+
+    setSuccess(true);
+    setTimeout(() => onClose(), 2000);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <div className="bg-[#0d0d0d] border border-white/15 rounded-2xl p-6 max-w-md w-full mx-4 space-y-5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#00AEEF]/10 flex items-center justify-center shrink-0">
+              <Download size={18} className="text-[#00AEEF]" />
+            </div>
+            <div>
+              <p className="font-semibold text-white">Export Applications</p>
+              <p className="text-xs text-gray-500">Generate a ZIP archive (Excel + CVs)</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
+            <X size={18} />
+          </button>
+        </div>
+
+        {success ? (
+          <div className="text-center py-4 space-y-2">
+            <p className="text-[#00FF9C] font-medium">Export successful!</p>
+            <p className="text-xs text-gray-500">Extract the ZIP to find the Excel file and a <strong>cvs/</strong> folder with all CV files.</p>
+          </div>
+        ) : (
+          <>
+            {/* Mode selector */}
+            <div className="space-y-2">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Export type</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMode("stale")}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm border transition-all text-left ${
+                    mode === "stale"
+                      ? "bg-red-500/10 border-red-500/30 text-red-400"
+                      : "bg-white/3 border-white/10 text-gray-400 hover:border-white/20"
+                  }`}
+                >
+                  <Clock size={14} />
+                  <div>
+                    <div className="font-medium">Older than 12 mo</div>
+                    <div className="text-[10px] opacity-70">Export + delete</div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode("range")}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm border transition-all text-left ${
+                    mode === "range"
+                      ? "bg-[#00AEEF]/10 border-[#00AEEF]/30 text-[#00AEEF]"
+                      : "bg-white/3 border-white/10 text-gray-400 hover:border-white/20"
+                  }`}
+                >
+                  <Download size={14} />
+                  <div>
+                    <div className="font-medium">Custom period</div>
+                    <div className="text-[10px] opacity-70">Export only</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Date range (range mode only) */}
+            {mode === "range" && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">From</label>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="w-full bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00AEEF]/50 [color-scheme:dark]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">To</label>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="w-full bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00AEEF]/50 [color-scheme:dark]"
+                  />
+                </div>
+              </div>
+            )}
+
+            {mode === "stale" && (
+              <div className="flex items-start gap-2 px-3 py-2.5 bg-red-500/5 border border-red-500/20 rounded-lg text-xs text-red-400">
+                <AlertTriangle size={13} className="shrink-0 mt-0.5" />
+                Records older than 12 months will be permanently deleted after export. This cannot be undone.
+              </div>
+            )}
+
+            {/* Password confirmation */}
+            <div>
+              <label className="text-xs text-gray-500 block mb-1.5">Confirm with your admin password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setError(null); }}
+                  placeholder="Your password"
+                  className="w-full bg-[#111] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#00AEEF]/50 pr-10"
+                  onKeyDown={(e) => e.key === "Enter" && handleExport()}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                >
+                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
+                {error}
+              </p>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={onClose}
+                disabled={loading}
+                className="flex-1 px-4 py-2 border border-white/10 text-gray-300 rounded-lg text-sm hover:border-white/20 transition-all disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleExport}
+                disabled={loading}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 ${
+                  mode === "stale"
+                    ? "bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20"
+                    : "bg-[#00AEEF]/10 border border-[#00AEEF]/30 text-[#00AEEF] hover:bg-[#00AEEF]/20"
+                }`}
+              >
+                {loading ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+                {loading ? "Exporting…" : mode === "stale" ? "Export & Delete" : "Export"}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function ApplicationsClient() {
   const [result, setResult] = useState<PagedResponse | null>(null);
@@ -674,6 +875,12 @@ export default function ApplicationsClient() {
   // Bulk CV delete
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [bulkConfirm, setBulkConfirm] = useState(false);
+
+  // Export modal
+  const [showExport, setShowExport] = useState(false);
+
+  // Stale count
+  const [staleCount, setStaleCount] = useState<{ staleApplications: number; staleApplicants: number } | null>(null);
 
   // Filters
   const [jobFilter, setJobFilter] = useState("");
@@ -713,6 +920,9 @@ export default function ApplicationsClient() {
     fetch("/api/admin/jobs")
       .then((r) => (r.ok ? r.json() : []))
       .then((data: unknown) => setJobs(Array.isArray(data) ? data : []));
+    fetch("/api/admin/applications/stale-count")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => { if (data) setStaleCount(data); });
   }, []);
 
   const filtersRef = useRef({
@@ -851,14 +1061,45 @@ export default function ApplicationsClient() {
               : "Loading…"}
           </p>
         </div>
-        <button
-          onClick={() => setShowMailSetup(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-400 border border-white/10 rounded-lg hover:text-white hover:border-white/25 transition-colors shrink-0 mt-1"
-        >
-          <HelpCircle size={13} />
-          Mail client setup
-        </button>
+        <div className="flex items-center gap-2 shrink-0 mt-1">
+          <button
+            onClick={() => setShowExport(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#00AEEF] border border-[#00AEEF]/25 rounded-lg hover:bg-[#00AEEF]/10 transition-colors"
+          >
+            <Download size={13} />
+            Export
+          </button>
+          <button
+            onClick={() => setShowMailSetup(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-400 border border-white/10 rounded-lg hover:text-white hover:border-white/25 transition-colors"
+          >
+            <HelpCircle size={13} />
+            Mail client setup
+          </button>
+        </div>
       </div>
+
+      {/* Stale data banner */}
+      {staleCount && staleCount.staleApplications > 0 && (
+        <div className="flex items-center justify-between gap-4 px-4 py-3 bg-amber-500/8 border border-amber-500/25 rounded-xl text-sm">
+          <div className="flex items-center gap-2 text-amber-400">
+            <Clock size={14} className="shrink-0" />
+            <span>
+              <span className="font-semibold">{staleCount.staleApplications}</span> application{staleCount.staleApplications !== 1 ? "s" : ""} older than 12 months
+              {staleCount.staleApplicants > 0 && (
+                <> · <span className="font-semibold">{staleCount.staleApplicants}</span> applicant{staleCount.staleApplicants !== 1 ? "s" : ""} eligible for removal</>
+              )}
+            </span>
+          </div>
+          <button
+            onClick={() => setShowExport(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-amber-500/15 border border-amber-500/30 text-amber-400 rounded-lg hover:bg-amber-500/25 transition-all whitespace-nowrap"
+          >
+            <Download size={12} />
+            Export &amp; delete
+          </button>
+        </div>
+      )}
 
       {/* New items banner */}
       {newCount > 0 && (
@@ -1086,6 +1327,7 @@ export default function ApplicationsClient() {
                               day: "numeric",
                               month: "short",
                               year: "numeric",
+                              timeZone: "Europe/Sarajevo",
                             })}
                           </div>
                           <div>
@@ -1094,6 +1336,7 @@ export default function ApplicationsClient() {
                             ).toLocaleTimeString("en-GB", {
                               hour: "2-digit",
                               minute: "2-digit",
+                              timeZone: "Europe/Sarajevo",
                             })}
                           </div>
                         </>
@@ -1220,6 +1463,20 @@ export default function ApplicationsClient() {
 
       {showMailSetup && (
         <ThunderbirdSetupModal onClose={() => setShowMailSetup(false)} />
+      )}
+
+      {/* Export modal */}
+      {showExport && (
+        <ExportModal
+          onClose={() => {
+            setShowExport(false);
+            // Refresh stale count and list after a potential delete
+            fetch("/api/admin/applications/stale-count")
+              .then((r) => (r.ok ? r.json() : null))
+              .then((data) => { if (data) setStaleCount(data); });
+            fetchApplications(1);
+          }}
+        />
       )}
 
       {/* Delete confirmation dialog */}

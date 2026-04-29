@@ -22,6 +22,14 @@ const ADDABLE_BLOCK_TYPES = CONTENT_BLOCK_TYPES.filter(
 const inputClass = "w-full px-3 py-2 bg-black border border-white/15 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white placeholder-gray-600 text-sm";
 const labelClass = "block text-xs font-medium text-gray-400 mb-1.5";
 
+// ── Deferred-upload props shared by editors that contain an ImageUploader ─────
+
+type DeferredProps = {
+  deferred?: boolean;
+  onPendingFile?: (blobUrl: string, file: File) => void;
+  onClearPending?: (blobUrl: string) => void;
+};
+
 // ── Per-block type editors ─────────────────────────────────────────────────────
 
 function TextEditor({ data, onChange }: { data: Record<string, unknown>; onChange: (d: Record<string, unknown>) => void }) {
@@ -39,13 +47,16 @@ function TextEditor({ data, onChange }: { data: Record<string, unknown>; onChang
   );
 }
 
-function ImageEditor({ data, onChange }: { data: Record<string, unknown>; onChange: (d: Record<string, unknown>) => void }) {
+function ImageEditor({ data, onChange, deferred, onPendingFile, onClearPending }: { data: Record<string, unknown>; onChange: (d: Record<string, unknown>) => void } & DeferredProps) {
   return (
     <div className="space-y-3">
       <ImageUploader
         label="Image *"
         value={String(data.url ?? "")}
         onChange={(url) => onChange({ ...data, url })}
+        deferred={deferred}
+        onPendingFile={onPendingFile}
+        onClearPending={onClearPending}
       />
       <div>
         <label className={labelClass}>Caption</label>
@@ -59,7 +70,7 @@ function ImageEditor({ data, onChange }: { data: Record<string, unknown>; onChan
   );
 }
 
-function GalleryEditor({ data, onChange }: { data: Record<string, unknown>; onChange: (d: Record<string, unknown>) => void }) {
+function GalleryEditor({ data, onChange, deferred, onPendingFile, onClearPending }: { data: Record<string, unknown>; onChange: (d: Record<string, unknown>) => void } & DeferredProps) {
   const images = (data.images as { url: string; caption?: string }[]) ?? [];
 
   function setImageUrl(idx: number, url: string) {
@@ -86,6 +97,9 @@ function GalleryEditor({ data, onChange }: { data: Record<string, unknown>; onCh
           <ImageUploader
             value={img.url}
             onChange={(url) => setImageUrl(idx, url)}
+            deferred={deferred}
+            onPendingFile={onPendingFile}
+            onClearPending={onClearPending}
           />
           <input className={inputClass} value={img.caption ?? ""} onChange={(e) => setCaption(idx, e.target.value)} placeholder="Caption (optional)" />
         </div>
@@ -202,7 +216,7 @@ function useImageDims(url: string) {
 // Aspect ratio mismatch threshold: warn if ratios differ by more than 15%
 const AR_THRESHOLD = 0.15;
 
-function BeforeAfterEditor({ data, onChange }: { data: Record<string, unknown>; onChange: (d: Record<string, unknown>) => void }) {
+function BeforeAfterEditor({ data, onChange, deferred, onPendingFile, onClearPending }: { data: Record<string, unknown>; onChange: (d: Record<string, unknown>) => void } & DeferredProps) {
   const beforeUrl = String(data.beforeUrl ?? "");
   const afterUrl  = String(data.afterUrl  ?? "");
 
@@ -238,6 +252,9 @@ function BeforeAfterEditor({ data, onChange }: { data: Record<string, unknown>; 
             label="Before — Image"
             value={beforeUrl}
             onChange={(url) => onChange({ ...data, beforeUrl: url })}
+            deferred={deferred}
+            onPendingFile={onPendingFile}
+            onClearPending={onClearPending}
           />
           {beforeDims && (
             <p className="text-[10px] text-gray-600">{beforeDims.w} × {beforeDims.h} px</p>
@@ -252,6 +269,9 @@ function BeforeAfterEditor({ data, onChange }: { data: Record<string, unknown>; 
             label="After — Image"
             value={afterUrl}
             onChange={(url) => onChange({ ...data, afterUrl: url })}
+            deferred={deferred}
+            onPendingFile={onPendingFile}
+            onClearPending={onClearPending}
           />
           {afterDims && (
             <p className="text-[10px] text-gray-600">{afterDims.w} × {afterDims.h} px</p>
@@ -306,9 +326,12 @@ function blockColor(type: ContentBlockType): string {
 type Props = {
   blocks: ContentBlock[];
   onChange: (blocks: ContentBlock[]) => void;
+  deferred?: boolean;
+  onPendingFile?: (blobUrl: string, file: File) => void;
+  onClearPending?: (blobUrl: string) => void;
 };
 
-export default function BlockEditor({ blocks, onChange }: Props) {
+export default function BlockEditor({ blocks, onChange, deferred, onPendingFile, onClearPending }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showTypePicker, setShowTypePicker] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
@@ -355,14 +378,15 @@ export default function BlockEditor({ blocks, onChange }: Props) {
 
   function renderEditor(block: ContentBlock) {
     const props = { data: block.data, onChange: (d: Record<string, unknown>) => updateBlockData(block.id, d) };
+    const imgProps = { deferred, onPendingFile, onClearPending };
     switch (block.type) {
       case "text":          return <TextEditor {...props} />;
-      case "image":         return <ImageEditor {...props} />;
-      case "gallery":       return <GalleryEditor {...props} />;
+      case "image":         return <ImageEditor {...props} {...imgProps} />;
+      case "gallery":       return <GalleryEditor {...props} {...imgProps} />;
       case "value-delivered": return <OverrideListEditor {...props} field="items" placeholder="Value" hint="Leave empty to use the project's value delivered list." />;
       case "bim-embed":     return <BimEmbedEditor {...props} />;
       case "video":         return <VideoEditor {...props} />;
-      case "before-after":  return <BeforeAfterEditor {...props} />;
+      case "before-after":  return <BeforeAfterEditor {...props} {...imgProps} />;
       case "cta":           return <CtaEditor {...props} />;
     }
   }

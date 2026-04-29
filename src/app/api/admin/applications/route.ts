@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/proxy";
+import { tzStartOfDay, tzEndOfDay } from "@/lib/dateUtils";
 
 const PAGE_SIZE = 20;
 
@@ -30,8 +31,8 @@ export async function GET(request: NextRequest) {
     ...(dateFrom || dateTo
       ? {
           submittedAt: {
-            ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
-            ...(dateTo ? { lte: new Date(dateTo + "T23:59:59") } : {}),
+            ...(dateFrom ? { gte: tzStartOfDay(dateFrom) } : {}),
+            ...(dateTo ? { lte: tzEndOfDay(dateTo) } : {}),
           },
         }
       : {}),
@@ -55,10 +56,10 @@ export async function GET(request: NextRequest) {
     conditions.push(Prisma.sql`app.jobId = ${jobId}`);
   }
   if (dateFrom) {
-    conditions.push(Prisma.sql`app.submittedAt >= ${new Date(dateFrom)}`);
+    conditions.push(Prisma.sql`app.submittedAt >= ${tzStartOfDay(dateFrom)}`);
   }
   if (dateTo) {
-    conditions.push(Prisma.sql`app.submittedAt <= ${new Date(dateTo + "T23:59:59")}`);
+    conditions.push(Prisma.sql`app.submittedAt <= ${tzEndOfDay(dateTo)}`);
   }
   if (minScore) {
     conditions.push(Prisma.sql`a.score >= ${parseInt(minScore, 10)}`);

@@ -160,6 +160,7 @@ export default function SessionsClient() {
                     <span>
                       Started {new Date(s.createdAt).toLocaleString("en-GB", {
                         day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+                        timeZone: "Europe/Sarajevo",
                       })}
                     </span>
                     <span className={expiresInTotal < 30 ? "text-yellow-500" : ""}>

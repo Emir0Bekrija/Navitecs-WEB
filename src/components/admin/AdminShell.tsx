@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   Briefcase,
@@ -22,6 +21,7 @@ import {
   Megaphone,
   BarChart2,
 } from "lucide-react";
+import AdminNotifications from "@/components/admin/AdminNotifications";
 
 const BASE_NAV = [
   {
@@ -272,11 +272,14 @@ export default function AdminShell({
             <Menu size={20} />
           </button>
           <h1 className="text-sm font-semibold text-gray-300">{currentPage}</h1>
-          <div className="ml-auto flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-[#00FF9C]" />
-            <span className="text-xs text-gray-500">
-              {me ? `${me.username} · ${me.role}` : "…"}
-            </span>
+          <div className="ml-auto flex items-center gap-3">
+            <AdminNotifications />
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#00FF9C]" />
+              <span className="text-xs text-gray-500">
+                {me ? `${me.username} · ${me.role}` : "…"}
+              </span>
+            </div>
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-6 lg:p-8">{children}</main>

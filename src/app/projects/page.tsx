@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import ProjectsClient from "../../components/pages/ProjectsClient";
 import { prisma } from "@/lib/db";
+import { getSiteSettings } from "@/lib/siteSettings";
 import type { Project, MediaItem } from "@/types/index";
 import type { ContentBlock } from "@/lib/blocks";
 
@@ -17,10 +18,10 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const rows = await prisma.project.findMany({
-    where: { status: "published" },
-    orderBy: { order: "asc" },
-  });
+  const [rows, settings] = await Promise.all([
+    prisma.project.findMany({ where: { status: "published" }, orderBy: { order: "asc" } }),
+    getSiteSettings(),
+  ]);
 
   const projects: Project[] = rows.map((p) => ({
     id:             p.id,
@@ -48,5 +49,5 @@ export default async function Page() {
     order:          p.order,
   }));
 
-  return <ProjectsClient initialProjects={projects} />;
+  return <ProjectsClient initialProjects={projects} comingSoon={settings.projectsComingSoon} />;
 }

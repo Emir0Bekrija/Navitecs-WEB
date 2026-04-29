@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     if (newCount >= MAX_ATTEMPTS) {
       // Lock out: terminate the session and write an audit entry flagging the IP
-      await deleteSession(session.sessionToken);
+      await deleteSession(session.sessionTokenHash);
       await logAudit(
         "verify_password_lockout",
         session.id,

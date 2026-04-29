@@ -14,6 +14,7 @@ const JobUpdateSchema = z.object({
   description: z.string().min(1).optional(),
   requirements: z.array(z.string().max(200)).optional(),
   active: z.boolean().optional(),
+  isGeneral: z.boolean().optional(),
 });
 
 // GET /api/admin/jobs/[id]

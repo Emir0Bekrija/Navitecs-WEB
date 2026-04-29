@@ -1,17 +1,32 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/proxy";
+import { tzStartOfDay } from "@/lib/dateUtils";
+
+const BUSINESS_TZ = "Europe/Sarajevo";
 
 // GET /api/admin/dashboard/quick — fast mini-stats for dashboard header
 export async function GET() {
   const deny = await requireAdmin();
   if (deny) return deny;
 
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const weekStart = new Date(now);
-  weekStart.setDate(weekStart.getDate() - 6);
-  weekStart.setHours(0, 0, 0, 0);
+  const nowInSarajevo = new Intl.DateTimeFormat("en-CA", {
+    timeZone: BUSINESS_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
+  const todayStart = tzStartOfDay(nowInSarajevo);
+
+  const weekAgoDate = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000);
+  const weekAgoStr = new Intl.DateTimeFormat("en-CA", {
+    timeZone: BUSINESS_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(weekAgoDate);
+  const weekStart = tzStartOfDay(weekAgoStr);
 
   try {
     const [pageViewsToday, pageViewsThisWeek, popupClicksTotal, popupClicksToday, avgDurationRaw] =

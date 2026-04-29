@@ -154,6 +154,7 @@ function DetailModal({ log, onClose }: { log: LogEntry; onClose: () => void }) {
                 {new Date(log.createdAt).toLocaleString("en-GB", {
                   day: "numeric", month: "short", year: "numeric",
                   hour: "2-digit", minute: "2-digit", second: "2-digit",
+                  timeZone: "Europe/Sarajevo",
                 })}
               </p>
             </div>
@@ -278,6 +279,77 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
   );
 }
 
+// ── Pagination ────────────────────────────────────────────────────────────────
+
+function Pagination({
+  page,
+  totalPages,
+  total,
+  pageSize,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  total: number;
+  pageSize: number;
+  onChange: (p: number) => void;
+}) {
+  if (totalPages <= 1) return null;
+
+  const from = (page - 1) * pageSize + 1;
+  const to = Math.min(page * pageSize, total);
+
+  const pages: (number | "…")[] = [];
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || (i >= page - 1 && i <= page + 1)) {
+      pages.push(i);
+    } else if (pages[pages.length - 1] !== "…") {
+      pages.push("…");
+    }
+  }
+
+  return (
+    <div className="flex items-center justify-between pt-2">
+      <p className="text-xs text-gray-500">
+        {from}–{to} of {total}
+      </p>
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => onChange(page - 1)}
+          disabled={page === 1}
+          className="p-1.5 rounded-lg border border-white/10 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+        >
+          <ChevronLeft size={15} />
+        </button>
+        {pages.map((p, i) =>
+          p === "…" ? (
+            <span key={`ellipsis-${i}`} className="px-1 text-gray-600 text-sm">…</span>
+          ) : (
+            <button
+              key={p}
+              onClick={() => onChange(p)}
+              className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${
+                p === page
+                  ? "bg-[#00AEEF] text-black"
+                  : "border border-white/10 text-gray-400 hover:text-white hover:border-white/20"
+              }`}
+            >
+              {p}
+            </button>
+          )
+        )}
+        <button
+          onClick={() => onChange(page + 1)}
+          disabled={page === totalPages}
+          className="p-1.5 rounded-lg border border-white/10 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+        >
+          <ChevronRight size={15} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function AuditLogClient() {
@@ -286,6 +358,7 @@ export default function AuditLogClient() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [pageSize, setPageSize] = useState(50);
   const [selected, setSelected] = useState<LogEntry | null>(null);
   const [filters, setFilters] = useState<Filters>({
     action: "", ip: "", username: "", dateFrom: "", dateTo: "",
@@ -311,9 +384,15 @@ export default function AuditLogClient() {
     if (debouncedFilters.dateTo)   params.set("dateTo",   debouncedFilters.dateTo);
     const res = await fetch(`/api/admin/audit-log?${params}`);
     if (res.ok) {
-      const data = await res.json() as { data: LogEntry[]; total: number; totalPages: number };
+      const data = await res.json() as {
+        data: LogEntry[];
+        total: number;
+        pageSize: number;
+        totalPages: number;
+      };
       setLogs(data.data);
       setTotal(data.total);
+      setPageSize(data.pageSize);
       setTotalPages(data.totalPages);
     }
     setLoading(false);
@@ -323,6 +402,12 @@ export default function AuditLogClient() {
 
   // Reset to page 1 when filters change
   useEffect(() => { setPage(1); }, [debouncedFilters]);
+
+  function handlePageChange(p: number) {
+    setPage(p);
+    setSelected(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   return (
     <div className="space-y-5 max-w-5xl">
@@ -408,6 +493,7 @@ export default function AuditLogClient() {
                         {new Date(log.createdAt).toLocaleString("en-GB", {
                           day: "numeric", month: "short",
                           hour: "2-digit", minute: "2-digit", second: "2-digit",
+                          timeZone: "Europe/Sarajevo",
                         })}
                       </td>
                     </tr>
@@ -418,27 +504,13 @@ export default function AuditLogClient() {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between text-sm text-gray-500">
-              <span>Page {page} of {totalPages}</span>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="flex items-center gap-1 px-3 py-1.5 border border-white/10 rounded-lg hover:text-white transition-colors disabled:opacity-30"
-                >
-                  <ChevronLeft size={14} /> Prev
-                </button>
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="flex items-center gap-1 px-3 py-1.5 border border-white/10 rounded-lg hover:text-white transition-colors disabled:opacity-30"
-                >
-                  Next <ChevronRight size={14} />
-                </button>
-              </div>
-            </div>
-          )}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            pageSize={pageSize}
+            onChange={handlePageChange}
+          />
         </>
       )}
 

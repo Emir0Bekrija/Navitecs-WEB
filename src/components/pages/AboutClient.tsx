@@ -9,34 +9,34 @@ export default function AboutClient() {
   usePageView();
   const milestones = [
     {
-      year: "2009",
-      title: "Company Founded",
-      description: "NAVITECS established in Sarajevo",
+      year: "2019",
+      title: "NAVITECS Founded",
+      description: "Established in Sarajevo",
     },
     {
-      year: "2012",
+      year: "2021",
       title: "BIM Integration",
-      description: "Adopted advanced BIM workflows and technologies",
+      description: "Adopted BIM across all engineering disciplines",
     },
     {
-      year: "2015",
+      year: "2023",
+      title: "Full-Scope Engineering",
+      description: "Delivered architectural, civil, and MEP projects",
+    },
+    {
+      year: "2025",
       title: "Regional Expansion",
       description: "Extended services across Southeast Europe",
     },
     {
-      year: "2018",
-      title: "500+ Projects",
-      description: "Reached major milestone in project delivery",
+      year: "2027",
+      title: "Advanced Delivery",
+      description: "Enhanced coordination and project efficiency",
     },
     {
-      year: "2021",
-      title: "MEP Specialization",
-      description: "Expanded expertise in integrated MEP systems",
-    },
-    {
-      year: "2026",
+      year: "2030",
       title: "Industry Leader",
-      description: "Recognized as leading BIM consultancy in the region",
+      description: "Recognized leader in integrated engineering services",
     },
   ];
 
@@ -169,16 +169,18 @@ export default function AboutClient() {
         </div>
       </section>
 
-      <section className="py-24 bg-white/5">
+      <section className="py-24 bg-black/20">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div className="relative grid grid-cols-1 md:grid-cols-2 gap-12 bg-black/10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="relative rounded-2xl border border-white/10 p-8 shadow-lg overflow-hidden bg-black/20 hover:bg-black/85 duration-300 ease-in-out"
+              whileHover={{ y: -8 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="relative rounded-2xl border border-white/50 p-8 shadow-lg overflow-hidden bg-black/20 hover:bg-black/90 duration-200 ease-in-out"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#00AEEF]/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-br from-[#00AEEF]/20 to-[#00FF9C]/20" />
               <div className="relative z-10">
                 <div className="inline-block p-4 bg-gradient-to-br from-[#00AEEF]/20 to-[#00FF9C]/20 rounded-xl mb-6">
                   <Target className="text-[#00AEEF]" size={32} />
@@ -197,12 +199,13 @@ export default function AboutClient() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="relative rounded-2xl border border-white/10 p-8 shadow-lg overflow-hidden bg-black/20 hover:bg-black/85 duration-300 ease-in-out"
+              whileHover={{ y: -8 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="relative rounded-2xl border border-white/50 p-8 shadow-lg overflow-hidden bg-black/20 hover:bg-black/90 duration-200 ease-in-out"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#00FF9C]/20 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-br from-[#00FF9C]/20 to-[#00AEEF]/20" />
               <div className="relative z-10">
-                <div className="inline-block p-4 bg-gradient-to-br from-[#00AEEF]/20 to-[#00FF9C]/20 rounded-xl mb-6">
+                <div className="inline-block p-4 bg-linear-to-br from-[#00AEEF]/20 to-[#00FF9C]/20 rounded-xl mb-6">
                   <Eye className="text-[#00FF9C]" size={32} />
                 </div>
                 <h3 className="text-3xl font-bold mb-4">Our Approach</h3>

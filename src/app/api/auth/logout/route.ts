@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   const user = await getSessionFromCookie();
 
   if (user) {
-    await deleteSession(user.sessionToken);
+    await deleteSession(user.sessionTokenHash);
     await logAudit("logout", user.id, user.username, ip);
   }
 

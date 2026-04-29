@@ -17,20 +17,23 @@ import {
 const CV_DIR = path.join(process.cwd(), "uploads", "cvs");
 
 const ApplySchema = z.object({
-  firstName:         z.string().min(1).max(100),
-  lastName:          z.string().max(100).default(""),
-  email:             z.string().email().max(200),
-  phone:             z.string().max(50).default(""),
-  role:              z.string().min(1).max(200),
-  linkedin:          z.string().max(300).default(""),
-  portfolio:         z.string().max(300).default(""),
-  message:           z.string().max(5000).default(""),
-  jobId:             z.string().max(36).optional(),
-  currentlyEmployed: z.enum(["yes", "no"]).optional(),
-  noticePeriod:      z.string().max(50).optional(),
-  yearsOfExperience: z.string().max(20).optional(),
-  location:          z.string().max(255).optional(),
-  bimSoftware:       z.string().max(500).optional(),
+  firstName:          z.string().min(1).max(100),
+  lastName:           z.string().max(100).default(""),
+  email:              z.string().email().max(200),
+  phone:              z.string().max(50).default(""),
+  role:               z.string().min(1).max(200),
+  linkedin:           z.string().max(300).default(""),
+  portfolio:          z.string().max(300).default(""),
+  message:            z.string().max(5000).default(""),
+  jobId:              z.string().max(36).optional(),
+  currentlyEmployed:  z.enum(["yes", "no"]).optional(),
+  noticePeriod:       z.string().max(50).optional(),
+  yearsOfExperience:  z.string().max(20).optional(),
+  location:           z.string().max(255).optional(),
+  bimSoftware:        z.string().max(500).optional(),
+  // Legal consent — the string "true" means the box was checked
+  consentDataSharing: z.string().optional().transform(v => v === "true"),
+  consentFutureUse:   z.string().optional().transform(v => v === "true"),
 });
 
 // POST /api/apply — public job application (multipart/form-data)
@@ -51,20 +54,22 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
 
     const fields = {
-      firstName:         String(formData.get("firstName") ?? ""),
-      lastName:          String(formData.get("lastName") ?? ""),
-      email:             String(formData.get("email") ?? ""),
-      phone:             String(formData.get("phone") ?? ""),
-      role:              String(formData.get("role") ?? ""),
-      linkedin:          String(formData.get("linkedin") ?? ""),
-      portfolio:         String(formData.get("portfolio") ?? ""),
-      message:           String(formData.get("message") ?? ""),
-      jobId:             String(formData.get("jobId") ?? "") || undefined,
-      currentlyEmployed: String(formData.get("currentlyEmployed") ?? "") || undefined,
-      noticePeriod:      String(formData.get("noticePeriod") ?? "") || undefined,
-      yearsOfExperience: String(formData.get("yearsOfExperience") ?? "") || undefined,
-      location:          String(formData.get("location") ?? "") || undefined,
-      bimSoftware:       String(formData.get("bimSoftware") ?? "") || undefined,
+      firstName:          String(formData.get("firstName") ?? ""),
+      lastName:           String(formData.get("lastName") ?? ""),
+      email:              String(formData.get("email") ?? ""),
+      phone:              String(formData.get("phone") ?? ""),
+      role:               String(formData.get("role") ?? ""),
+      linkedin:           String(formData.get("linkedin") ?? ""),
+      portfolio:          String(formData.get("portfolio") ?? ""),
+      message:            String(formData.get("message") ?? ""),
+      jobId:              String(formData.get("jobId") ?? "") || undefined,
+      currentlyEmployed:  String(formData.get("currentlyEmployed") ?? "") || undefined,
+      noticePeriod:       String(formData.get("noticePeriod") ?? "") || undefined,
+      yearsOfExperience:  String(formData.get("yearsOfExperience") ?? "") || undefined,
+      location:           String(formData.get("location") ?? "") || undefined,
+      bimSoftware:        String(formData.get("bimSoftware") ?? "") || undefined,
+      consentDataSharing: String(formData.get("consentDataSharing") ?? ""),
+      consentFutureUse:   String(formData.get("consentFutureUse") ?? ""),
     };
 
     const parsed = ApplySchema.safeParse(fields);
@@ -73,6 +78,14 @@ export async function POST(request: NextRequest) {
     }
 
     const data = parsed.data;
+
+    // Both legal consent checkboxes are mandatory
+    if (!data.consentDataSharing || !data.consentFutureUse) {
+      return NextResponse.json(
+        { error: "Both consent checkboxes must be accepted before submitting." },
+        { status: 400 },
+      );
+    }
 
     // ── CV upload ─────────────────────────────────────────────────────────────
     let cvFileName: string | null = null; // original filename — display only, never used as path
@@ -187,14 +200,20 @@ export async function POST(request: NextRequest) {
             : data.currentlyEmployed === "no"
               ? false
               : null,
-        noticePeriod:      data.noticePeriod || null,
-        yearsOfExperience: data.yearsOfExperience || null,
-        location:          data.location || null,
-        bimSoftware:       data.bimSoftware || null,
+        noticePeriod:       data.noticePeriod || null,
+        yearsOfExperience:  data.yearsOfExperience || null,
+        location:           data.location || null,
+        bimSoftware:        data.bimSoftware || null,
+        consentDataSharing: data.consentDataSharing,
+        consentFutureUse:   data.consentFutureUse,
       },
     });
 
-    adminEvents.emit("new_application");
+    adminEvents.emit("new_application", {
+      firstName:   data.firstName,
+      lastName:    data.lastName,
+      applicantId: applicant.id,
+    });
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[POST /api/apply]", err);

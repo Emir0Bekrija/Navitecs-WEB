@@ -10,6 +10,11 @@ function createPrismaClient() {
     password: process.env.DATABASE_PASSWORD ?? "",
     database: process.env.DATABASE_NAME ?? "navitecs",
     connectionLimit: 5,
+    // Tell the driver that DATETIME values in the DB are UTC.
+    // Without this the mariadb package defaults to 'local', which on a Windows
+    // machine set to Europe/Sarajevo (UTC+2) shifts every timestamp 2 hours
+    // backward when reading from the DB.
+    timezone: "+00:00",
   });
 
   return new PrismaClient({

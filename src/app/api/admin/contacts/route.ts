@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/proxy";
+import { tzStartOfDay, tzEndOfDay } from "@/lib/dateUtils";
 
 // GET /api/admin/contacts
 // Query params: email, name, projectType, service, dateFrom, dateTo
@@ -29,8 +30,8 @@ export async function GET(request: NextRequest) {
       ...(dateFrom || dateTo
         ? {
             submittedAt: {
-              ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
-              ...(dateTo ? { lte: new Date(dateTo + "T23:59:59") } : {}),
+              ...(dateFrom ? { gte: tzStartOfDay(dateFrom) } : {}),
+              ...(dateTo ? { lte: tzEndOfDay(dateTo) } : {}),
             },
           }
         : {}),

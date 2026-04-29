@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { promises as fs } from "fs";
+import path from "path";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/proxy";
 import type { Project, MediaItem } from "@/types/index";
 import type { ContentBlock } from "@/lib/blocks";
+
+const IMAGE_DIR = path.resolve(process.cwd(), "uploads", "images");
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -95,6 +99,55 @@ export async function GET(_req: NextRequest, { params }: Params) {
   return NextResponse.json(toResponse(project));
 }
 
+// ── Image file helpers (used by PUT and DELETE) ───────────────────────────────
+
+/** Extract the UUID filename from a stored image URL like /api/images/{uuid}.webp */
+function imageFilename(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const match = url.match(/^\/api\/images\/([0-9a-f-]+\.webp)$/i);
+  return match ? match[1] : null;
+}
+
+/** Collect all server-hosted image filenames referenced by a project. */
+function collectImageFilenames(project: {
+  featuredImage: string | null;
+  media: unknown;
+  contentBlocks: unknown;
+}): string[] {
+  const filenames = new Set<string>();
+
+  const fi = imageFilename(project.featuredImage);
+  if (fi) filenames.add(fi);
+
+  const media = Array.isArray(project.media) ? (project.media as { url?: string }[]) : [];
+  for (const item of media) {
+    const f = imageFilename(item.url);
+    if (f) filenames.add(f);
+  }
+
+  const blocks = Array.isArray(project.contentBlocks)
+    ? (project.contentBlocks as ContentBlock[])
+    : [];
+  for (const block of blocks) {
+    const data = block.data as Record<string, unknown>;
+    for (const f of [
+      imageFilename(data.url as string),
+      imageFilename(data.beforeUrl as string),
+      imageFilename(data.afterUrl as string),
+    ]) {
+      if (f) filenames.add(f);
+    }
+    if (Array.isArray(data.images)) {
+      for (const img of data.images as { url?: string }[]) {
+        const f = imageFilename(img.url);
+        if (f) filenames.add(f);
+      }
+    }
+  }
+
+  return [...filenames];
+}
+
 // ── PUT /api/admin/projects/[id] ──────────────────────────────────────────────
 
 export async function PUT(request: NextRequest, { params }: Params) {
@@ -107,6 +160,12 @@ export async function PUT(request: NextRequest, { params }: Params) {
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
+
+  // Snapshot existing image filenames before the update so we can clean up removed ones
+  const oldProject = await prisma.project.findUnique({
+    where: { id },
+    select: { featuredImage: true, media: true, contentBlocks: true },
+  });
 
   try {
     const { scopeOfWork, toolsAndTech, results, valueDelivered, media, contentBlocks, ...scalarData } = parsed.data;
@@ -122,6 +181,18 @@ export async function PUT(request: NextRequest, { params }: Params) {
         ...(contentBlocks  !== undefined && { contentBlocks:  JSON.parse(JSON.stringify(contentBlocks)) }),
       },
     });
+
+    // Delete any server-hosted image files that were removed during this edit
+    if (oldProject) {
+      const oldFilenames = new Set(collectImageFilenames(oldProject));
+      const newFilenames = new Set(collectImageFilenames(project));
+      for (const filename of oldFilenames) {
+        if (!newFilenames.has(filename)) {
+          await fs.unlink(path.join(IMAGE_DIR, filename)).catch(() => {});
+        }
+      }
+    }
+
     return NextResponse.json(toResponse(project));
   } catch {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -135,8 +206,13 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   if (deny) return deny;
 
   const { id } = await params;
-  const project = await prisma.project.findUnique({ where: { id }, select: { order: true } });
+  const project = await prisma.project.findUnique({
+    where: { id },
+    select: { order: true, featuredImage: true, media: true, contentBlocks: true },
+  });
   if (!project) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const imageFilenames = collectImageFilenames(project);
 
   await prisma.$transaction([
     prisma.project.delete({ where: { id } }),
@@ -145,6 +221,11 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
       data: { order: { decrement: 1 } },
     }),
   ]);
+
+  // Delete image files from disk (best-effort — don't fail if a file is missing)
+  for (const filename of imageFilenames) {
+    await fs.unlink(path.join(IMAGE_DIR, filename)).catch(() => {});
+  }
 
   return NextResponse.json({ ok: true });
 }

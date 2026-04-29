@@ -13,7 +13,15 @@
       "Bash(node -e ':*)",
       "Bash(xargs npm:*)",
       "Bash(node -e \" let data = ''; process.stdin.on\\('data', d => data += d\\); process.stdin.on\\('end', \\(\\) => { // npm show with multiple args returns a different format console.log\\(data.slice\\(0, 200\\)\\); }\\); \")",
-      "Bash(npm show:*)"
+      "Bash(npm show:*)",
+      "Bash(npx --no-install next lint --dir src)",
+      "Bash(npx --no-install next lint src)",
+      "Bash(node -e \"require\\('xlsx'\\); console.log\\('xlsx ok'\\)\")",
+      "Bash(npm uninstall:*)",
+      "Bash(npx web-push:*)",
+      "Bash(node -e \"const deps = require\\('./package.json'\\); console.log\\(JSON.stringify\\({...deps.dependencies, ...deps.devDependencies}, null, 2\\)\\)\")",
+      "Bash(node -e \"require\\('fflate'\\); console.log\\('ok'\\)\")",
+      "Bash(node -e \"const { zipSync } = require\\('fflate'\\); const z = zipSync\\({ 'hello.txt': Buffer.from\\('hello'\\) }\\); console.log\\('zip size:', z.length\\)\")"
     ]
   }
 }

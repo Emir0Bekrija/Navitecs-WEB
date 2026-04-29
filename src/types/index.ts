@@ -48,6 +48,7 @@ export type Job = {
   type: string;
   description: string;
   active: boolean;
+  isGeneral: boolean;
   createdAt: string;
   requirements?: string[];
 };

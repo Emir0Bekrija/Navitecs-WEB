@@ -14,6 +14,11 @@ import {
 } from "lucide-react";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 
+import bimConsultingImage from "./images/BIM-CONSULTING-REAL.png";
+import revitImage from "./images/Using Revit for structural design.webp";
+import bimConsultingchatgptImage from "./images/ChatGPT Image Apr 29, 2026, 09_32_22 AM.png";
+import bimConsultingImageRevit from "./images/BIM-CONSULTING.png";
+
 type Service = {
   icon: React.ComponentType<{ size?: number; className?: string }>;
   title: string;
@@ -152,10 +157,8 @@ export default function ServicesClient() {
       title: "BIM Consulting",
       description:
         "Comprehensive BIM coordination services to ensure seamless collaboration between all project stakeholders.",
-      image:
-        "https://www.uniquescadd.com/wp-content/uploads/2025/09/BIM-Consulting-Services.png",
-      hoverImage:
-        "https://gandyandroberts.com.au/wp-content/uploads/2019/04/Hedberg-BIM.png",
+      image: bimConsultingImage.src,
+      hoverImage: bimConsultingImageRevit.src,
       features: [
         "Multidisciplinary Coordination",
         "Clash Detection & Resolution",
@@ -326,9 +329,11 @@ export default function ServicesClient() {
                 className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
               >
                 <div className={index % 2 === 1 ? "lg:order-2" : ""}>
+                  {/* IKONICA 
                   <div className="inline-block p-3 bg-gradient-to-br from-[#00AEEF]/20 to-[#00FF9C]/20 rounded-xl mb-6">
                     <service.icon className="text-white" size={32} />
                   </div>
+                  */}
 
                   <h2 className="text-4xl font-bold mb-4">{service.title}</h2>
                   <p className="text-gray-400 text-lg mb-8">

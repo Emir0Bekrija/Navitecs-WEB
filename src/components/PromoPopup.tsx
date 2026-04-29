@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ExternalLink, ArrowRight } from "lucide-react";
+import { useConsent } from "@/hooks/useConsent";
+import { trackEvent } from "@/lib/analytics";
 
 type PopupConfig = {
   enabled: boolean;
@@ -17,17 +19,25 @@ type PopupConfig = {
   openInNewTab: boolean;
 };
 
-function trackPopupClick(linkUrl: string, linkTitle: string) {
-  fetch("/api/track/popup-click", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ linkUrl, linkTitle }),
-  }).catch(() => {});
-}
-
 export default function PromoPopup() {
   const [config, setConfig] = useState<PopupConfig | null>(null);
   const [visible, setVisible] = useState(false);
+  const consent = useConsent();
+  const analyticsGranted = consent?.analytics === true;
+
+  // trackPopupClick: popup_click — only fires if analytics consent is granted
+  function trackPopupClick(linkUrl: string, linkTitle: string) {
+    if (!analyticsGranted) return;
+    // Custom DB analytics
+    fetch("/api/track/popup-click", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ linkUrl, linkTitle }),
+    }).catch(() => {});
+    // GA4 event
+    // trackEvent: popup_click
+    trackEvent("popup_click", { link_url: linkUrl, link_title: linkTitle });
+  }
 
   useEffect(() => {
     fetch("/api/popup")

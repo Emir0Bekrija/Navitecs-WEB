@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSuperAdmin } from "@/lib/proxy";
+import { tzStartOfDay, tzEndOfDay } from "@/lib/dateUtils";
 
 const PAGE_SIZE = 50;
 
@@ -24,8 +25,8 @@ export async function GET(request: NextRequest) {
     ...(username && { username: { contains: username } }),
     ...((dateFrom || dateTo) && {
       createdAt: {
-        ...(dateFrom && { gte: new Date(dateFrom) }),
-        ...(dateTo   && { lte: new Date(new Date(dateTo).setHours(23, 59, 59, 999)) }),
+        ...(dateFrom && { gte: tzStartOfDay(dateFrom) }),
+        ...(dateTo   && { lte: tzEndOfDay(dateTo) }),
       },
     }),
   };

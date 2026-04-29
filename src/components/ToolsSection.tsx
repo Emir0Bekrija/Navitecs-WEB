@@ -7,7 +7,7 @@ export default function ToolsSection() {
   const tools = [
     {
       icon: Box,
-      name: "Autodesk Revit",
+      name: "Revit",
       description: "Primary BIM authoring tool",
     },
     {
@@ -32,7 +32,7 @@ export default function ToolsSection() {
     },
     {
       icon: Database,
-      name: "Autodesk ReCap",
+      name: "ReCap",
       description: "Reality capture and 3D scanning",
     },
   ];

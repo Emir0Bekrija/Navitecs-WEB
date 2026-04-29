@@ -57,3 +57,46 @@ export async function savePopupConfig(data: Partial<Omit<PopupConfig, "id">>): P
   });
   return serialize(row);
 }
+
+// ── Templates ─────────────────────────────────────────────────────────────────
+
+export type PopupTemplate = {
+  id: number;
+  name: string;
+  badge: string;
+  category: string;
+  title: string;
+  description: string;
+  buttonText: string;
+  linkUrl: string;
+  linkType: string;
+  openInNewTab: boolean;
+  createdAt: string;
+};
+
+function serializeTemplate(row: {
+  id: number; name: string; badge: string; category: string; title: string;
+  description: string; buttonText: string; linkUrl: string; linkType: string;
+  openInNewTab: boolean; createdAt: Date;
+}): PopupTemplate {
+  return { ...row, createdAt: row.createdAt.toISOString() };
+}
+
+export async function listPopupTemplates(): Promise<PopupTemplate[]> {
+  const rows = await prisma.popupTemplate.findMany({ orderBy: { createdAt: "desc" } });
+  return rows.map(serializeTemplate);
+}
+
+export async function createPopupTemplate(data: Omit<PopupTemplate, "id" | "createdAt">): Promise<PopupTemplate> {
+  const row = await prisma.popupTemplate.create({ data });
+  return serializeTemplate(row);
+}
+
+export async function updatePopupTemplate(id: number, data: Partial<Omit<PopupTemplate, "id" | "createdAt">>): Promise<PopupTemplate> {
+  const row = await prisma.popupTemplate.update({ where: { id }, data });
+  return serializeTemplate(row);
+}
+
+export async function deletePopupTemplate(id: number): Promise<void> {
+  await prisma.popupTemplate.delete({ where: { id } });
+}

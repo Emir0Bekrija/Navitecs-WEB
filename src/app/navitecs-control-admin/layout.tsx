@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: { default: "Admin", template: "%s | Admin" },
@@ -22,6 +23,7 @@ export default function AdminLayout({
       }}
     >
       {children}
+      <Toaster position="bottom-right" />
     </div>
   );
 }

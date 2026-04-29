@@ -29,10 +29,13 @@ export default function Contact() {
     message: "",
   });
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [consent, setConsent] = useState(false);
 
   function toggleService(s: string) {
     setSelectedServices((prev) => {
-      const next = prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s];
+      const next = prev.includes(s)
+        ? prev.filter((x) => x !== s)
+        : [...prev, s];
       if (next.length > 0) setErrors((e) => ({ ...e, services: "" }));
       return next;
     });
@@ -40,17 +43,26 @@ export default function Contact() {
 
   function validateField(name: string, value: string): string {
     switch (name) {
-      case "name": return value.trim() ? "" : "Name is required.";
+      case "name":
+        return value.trim() ? "" : "Name is required.";
       case "email":
         if (!value.trim()) return "Email is required.";
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? "" : "Please enter a valid email address.";
-      case "company": return value.trim() ? "" : "Company is required.";
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+          ? ""
+          : "Please enter a valid email address.";
+      case "company":
+        return value.trim() ? "" : "Company is required.";
       case "phone":
         if (!value.trim()) return "Phone number is required.";
-        return /^\+?[\d\s\-(). ]{7,20}$/.test(value.trim()) ? "" : "Please enter a valid phone number.";
-      case "projectType": return value ? "" : "Please select a project type.";
-      case "message": return value.trim() ? "" : "Project details are required.";
-      default: return "";
+        return /^\+?[\d\s\-(). ]{7,20}$/.test(value.trim())
+          ? ""
+          : "Please enter a valid phone number.";
+      case "projectType":
+        return value ? "" : "Please select a project type.";
+      case "message":
+        return value.trim() ? "" : "Project details are required.";
+      default:
+        return "";
     }
   }
 
@@ -69,7 +81,14 @@ export default function Contact() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const requiredFields = ["name", "email", "company", "phone", "projectType", "message"] as const;
+    const requiredFields = [
+      "name",
+      "email",
+      "company",
+      "phone",
+      "projectType",
+      "message",
+    ] as const;
     const newErrors: Record<string, string> = {};
     for (const field of requiredFields) {
       const msg = validateField(field, formData[field]);
@@ -78,9 +97,16 @@ export default function Contact() {
     if (selectedServices.length === 0) {
       newErrors.services = "Please select at least one service.";
     }
+    if (!consent) {
+      newErrors.consent =
+        "You must consent to data processing before submitting.";
+    }
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       setValidationBanner(true);
+      document
+        .getElementById("conversation")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
     }
     setValidationBanner(false);
@@ -93,6 +119,7 @@ export default function Contact() {
       body: JSON.stringify({
         ...formData,
         projectServices: selectedServices.join(","),
+        consentDataProcessing: consent,
       }),
     });
 
@@ -105,10 +132,16 @@ export default function Contact() {
           ? json.error
           : "Something went wrong. Please try again.",
       );
+      document
+        .getElementById("conversation")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
     }
 
     setFormSubmitted(true);
+    document
+      .getElementById("conversation")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
     setTimeout(() => {
       setFormSubmitted(false);
       setFormData({
@@ -120,6 +153,7 @@ export default function Contact() {
         message: "",
       });
       setSelectedServices([]);
+      setConsent(false);
     }, 3000);
   };
 
@@ -200,6 +234,29 @@ export default function Contact() {
               </motion.a>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="py-24 bg-black/70 hover:bg-black">
+        <div className="max-w-4xl mx-auto px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className={`${cardClass} text-center`}
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              Ready to Start Your{" "}
+              <span className="bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] bg-clip-text text-transparent">
+                Project?
+              </span>
+            </h2>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Whether you need BIM coordination, structural engineering, MEP
+              design, or complete project development services, our team is
+              ready to help. Contact us today to discuss your requirements.
+            </p>
+          </motion.div>
         </div>
       </section>
 
@@ -301,7 +358,11 @@ export default function Contact() {
                         className={`w-full px-4 py-3 bg-black/70 hover:bg-black border rounded-lg focus:outline-none transition-colors text-white ${errors.company ? "border-red-500/70 focus:border-red-500" : "border-white/30 focus:border-[#00AEEF]"}`}
                         placeholder="Company name"
                       />
-                      {errors.company && <p className="mt-1.5 text-xs text-red-400">{errors.company}</p>}
+                      {errors.company && (
+                        <p className="mt-1.5 text-xs text-red-400">
+                          {errors.company}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label
@@ -320,7 +381,11 @@ export default function Contact() {
                         className={`w-full px-4 py-3 bg-black/70 hover:bg-black border rounded-lg focus:outline-none transition-colors text-white ${errors.phone ? "border-red-500/70 focus:border-red-500" : "border-white/30 focus:border-[#00AEEF]"}`}
                         placeholder="+387 XX XXX XXX"
                       />
-                      {errors.phone && <p className="mt-1.5 text-xs text-red-400">{errors.phone}</p>}
+                      {errors.phone && (
+                        <p className="mt-1.5 text-xs text-red-400">
+                          {errors.phone}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -376,14 +441,20 @@ export default function Contact() {
                         Other
                       </option>
                     </select>
-                    {errors.projectType && <p className="mt-1.5 text-xs text-red-400">{errors.projectType}</p>}
+                    {errors.projectType && (
+                      <p className="mt-1.5 text-xs text-red-400">
+                        {errors.projectType}
+                      </p>
+                    )}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium mb-3">
                       Services Required *
                     </label>
-                    <div className={`flex flex-wrap gap-2 p-3 rounded-lg border transition-colors ${errors.services ? "border-red-500/50" : "border-transparent"}`}>
+                    <div
+                      className={`flex flex-wrap gap-2 p-3 rounded-lg border transition-colors ${errors.services ? "border-red-500/50" : "border-transparent"}`}
+                    >
                       {PROJECT_SERVICES.map((s) => {
                         const active = selectedServices.includes(s);
                         return (
@@ -402,7 +473,11 @@ export default function Contact() {
                         );
                       })}
                     </div>
-                    {errors.services && <p className="mt-1.5 text-xs text-red-400">{errors.services}</p>}
+                    {errors.services && (
+                      <p className="mt-1.5 text-xs text-red-400">
+                        {errors.services}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -426,6 +501,45 @@ export default function Contact() {
                     {errors.message && (
                       <p className="mt-1.5 text-xs text-red-400">
                         {errors.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Legal consent */}
+                  <div className="space-y-1 p-5 bg-black/70 border border-white/20 rounded-xl">
+                    <p className="text-sm font-medium text-gray-200 mb-3">
+                      Legal consent *
+                    </p>
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={consent}
+                        onChange={(e) => {
+                          setConsent(e.target.checked);
+                          if (e.target.checked)
+                            setErrors((prev) => ({ ...prev, consent: "" }));
+                        }}
+                        className="mt-0.5 w-4 h-4 shrink-0 accent-[#00FF9C] cursor-pointer"
+                      />
+                      <span className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors leading-relaxed">
+                        I consent to NAVITECS collecting and processing my
+                        personal data (name, email, company, phone number,
+                        project type, selected services, and project details)
+                        for the purpose of responding to my inquiry, in
+                        accordance with the{" "}
+                        <a
+                          href="/privacy-policy"
+                          className="underline underline-offset-2 hover:text-white transition-colors"
+                        >
+                          Privacy Policy
+                        </a>
+                        . My data will not be retained for longer than 12
+                        months.
+                      </span>
+                    </label>
+                    {errors.consent && (
+                      <p className="ml-7 text-xs text-red-400">
+                        {errors.consent}
                       </p>
                     )}
                   </div>
@@ -518,7 +632,7 @@ export default function Contact() {
                 <div className={`${cardClass} space-y-3`}>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Monday - Friday</span>
-                    <span className="font-medium">08:00 - 16:00</span>
+                    <span className="font-medium">08:00 - 16:30</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Saturday - Sunday</span>
@@ -528,29 +642,6 @@ export default function Contact() {
               </div>
             </motion.div>
           </div>
-        </div>
-      </section>
-
-      <section className="py-24 bg-black/70 hover:bg-black">
-        <div className="max-w-4xl mx-auto px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className={`${cardClass} text-center`}
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Ready to Start Your{" "}
-              <span className="bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] bg-clip-text text-transparent">
-                Project?
-              </span>
-            </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Whether you need BIM coordination, structural engineering, MEP
-              design, or complete project development services, our team is
-              ready to help. Contact us today to discuss your requirements.
-            </p>
-          </motion.div>
         </div>
       </section>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import Link from "next/link";
 import {
   Plus,
@@ -33,16 +34,18 @@ export default function JobsClient() {
   useEffect(() => { loadJobs(); }, []);
 
   async function toggleActive(job: Job) {
-    await fetch(`/api/admin/jobs/${job.id}`, {
+    const res = await fetch(`/api/admin/jobs/${job.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ active: !job.active }),
     });
+    if (res.ok) toast.success(job.active ? "Job deactivated" : "Job activated");
     loadJobs();
   }
 
-  async function confirmDelete(id: string) {
-    await fetch(`/api/admin/jobs/${id}`, { method: "DELETE" });
+  async function confirmDelete(id: string, title: string) {
+    const res = await fetch(`/api/admin/jobs/${id}`, { method: "DELETE" });
+    if (res.ok) toast.success(`"${title}" deleted`);
     loadJobs();
   }
 
@@ -138,6 +141,11 @@ export default function JobsClient() {
                         Inactive
                       </span>
                     )}
+                    {job.isGeneral && (
+                      <span className="px-2 py-0.5 text-xs bg-amber-500/15 text-amber-400 rounded-full border border-amber-500/25">
+                        General Application
+                      </span>
+                    )}
                   </div>
                   <p className="text-sm text-gray-400 mb-2 line-clamp-2">
                     {job.description}
@@ -189,7 +197,7 @@ export default function JobsClient() {
       {pendingDelete && (
         <DeleteModal
           itemName={pendingDelete.title}
-          onConfirm={() => confirmDelete(pendingDelete.id)}
+          onConfirm={() => confirmDelete(pendingDelete.id, pendingDelete.title)}
           onClose={() => setPendingDelete(null)}
           actionHint={`delete_job:${pendingDelete.id}`}
         />

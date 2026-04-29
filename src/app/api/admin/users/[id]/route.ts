@@ -7,10 +7,11 @@ import { logAudit, deleteAllUserSessions } from "@/lib/adminAuth";
 import { getClientIp } from "@/lib/rateLimit";
 
 const ChangePasswordSchema = z.object({
-  password: z.string().min(12).max(200),
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(12).max(200),
 });
 
-// PATCH /api/admin/users/[id] — change a user's password (invalidates all their sessions)
+// PATCH /api/admin/users/[id] — change a user's password (requires their current password)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -34,7 +35,13 @@ export async function PATCH(
   const target = await prisma.adminUser.findUnique({ where: { id: userId } });
   if (!target) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  const hash = await bcrypt.hash(parsed.data.password, 12);
+  // Verify the user's current password before allowing the change
+  const currentPasswordOk = await bcrypt.compare(parsed.data.currentPassword, target.password);
+  if (!currentPasswordOk) {
+    return NextResponse.json({ error: "Current password is incorrect." }, { status: 403 });
+  }
+
+  const hash = await bcrypt.hash(parsed.data.newPassword, 12);
   await prisma.adminUser.update({ where: { id: userId }, data: { password: hash } });
 
   // Invalidate all sessions for this user — forces re-login everywhere
@@ -49,8 +56,9 @@ export async function PATCH(
 }
 
 // DELETE /api/admin/users/[id] — delete an admin user
+// Password verification is handled upstream by /api/admin/verify-password (with lockout).
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const deny = await requireSuperAdmin();
@@ -60,7 +68,7 @@ export async function DELETE(
   const userId = parseInt(id, 10);
   if (isNaN(userId)) return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
 
-  const ip = getClientIp(request.headers);
+  const ip = getClientIp(_request.headers);
   const currentUser = await getAdminSession();
 
   if (userId === currentUser?.id) {

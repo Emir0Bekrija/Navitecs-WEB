@@ -26,14 +26,15 @@ model AdminUser {
 }
 
 model AdminSession {
-  id        String    @id @default(cuid()) @db.VarChar(36)
-  userId    Int
-  token     String    @unique @db.VarChar(128) // 96-char hex from 48 random bytes
-  ip        String?   @db.VarChar(45)
-  userAgent String?   @db.VarChar(500)
-  expiresAt DateTime
-  createdAt DateTime  @default(now())
-  user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String    @id @default(cuid()) @db.VarChar(36)
+  userId            Int
+  tokenHash         String    @unique @db.VarChar(64)  // SHA-256 hex of the raw cookie token — raw token is never stored
+  ip                String?   @db.VarChar(45)
+  userAgent         String?   @db.VarChar(500)
+  expiresAt         DateTime  // sliding idle timeout: extended on activity, max = absoluteExpiresAt
+  absoluteExpiresAt DateTime  // hard cap set at login (login time + 24 h), never extended
+  createdAt         DateTime  @default(now())
+  user              AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("admin_sessions")
@@ -109,6 +110,7 @@ model Job {
   description  String        @db.Text // full detailed description shown on apply page
   requirements Json?         // string[] — skill/proficiency options shown on apply form
   active       Boolean       @default(true)
+  isGeneral    Boolean       @default(false) // true = general application, hidden from careers job list
   order        Int           @default(0)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -137,6 +139,8 @@ model Application {
   yearsOfExperience  String?    @db.VarChar(20)  // e.g. "0-1", "1-3", "3-5", "5-10", "10+"
   location           String?    @db.VarChar(255)
   bimSoftware        String?    @db.VarChar(500) // comma-separated list
+  consentDataSharing Boolean    @default(false)  // User consented to processing their personal data
+  consentFutureUse   Boolean    @default(false)  // User agreed to retention for future opportunities
   submittedAt        DateTime   @default(now())
 
   // Relations
@@ -183,9 +187,10 @@ model Contact {
   phone            String?         @db.VarChar(50)
   projectType      String?         @db.VarChar(100)
   service          String?         @db.VarChar(100)
-  projectServices  String?         @db.VarChar(500) // comma-separated selected services
-  message          String          @db.Text
-  submittedAt      DateTime        @default(now())
+  projectServices       String?         @db.VarChar(500) // comma-separated selected services
+  message               String          @db.Text
+  consentDataProcessing Boolean         @default(false)  // User consented to processing their personal data
+  submittedAt           DateTime        @default(now())
 
   // Relations
   companyContactId String?         @db.VarChar(36)
@@ -242,6 +247,35 @@ model PopupClick {
 
   @@index([createdAt])
   @@map("popup_clicks")
+}
+
+// ─── Popup Templates ──────────────────────────────────────────────────────────
+
+model PopupTemplate {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  badge       String   @default("INSIGHT") @db.VarChar(50)
+  category    String   @default("") @db.VarChar(100)
+  title       String   @default("") @db.VarChar(255)
+  description String   @default("") @db.Text
+  buttonText  String   @default("") @db.VarChar(100)
+  linkUrl     String   @default("") @db.VarChar(500)
+  linkType    String   @default("external") @db.VarChar(20)
+  openInNewTab Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("popup_templates")
+}
+
+// ─── Site Settings (singleton) ───────────────────────────────────────────────
+
+model SiteSettings {
+  id                    Int      @id @default(1)
+  projectsComingSoon    Boolean  @default(false)
+  updatedAt             DateTime @updatedAt
+
+  @@map("site_settings")
 }
 
 // ─── Popup Config (singleton) ─────────────────────────────────────────────────
