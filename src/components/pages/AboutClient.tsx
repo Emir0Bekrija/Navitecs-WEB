@@ -10,33 +10,63 @@ export default function AboutClient() {
   const milestones = [
     {
       year: "2019",
-      title: "NAVITECS Founded",
-      description: "Established in Sarajevo",
+      title: "The Beginning",
+      description:
+        "Initial ideas and early project work took shape, laying the foundation for the company.",
+    },
+    {
+      year: "2020",
+      title: "First Projects Delivered",
+      description:
+        "Completed early projects, gained hands-on experience, and refined the approach.",
     },
     {
       year: "2021",
-      title: "BIM Integration",
-      description: "Adopted BIM across all engineering disciplines",
+      title: "Growth & Development",
+      description:
+        "Expanded capabilities and continued building a portfolio across multiple projects.",
     },
     {
-      year: "2023",
-      title: "Full-Scope Engineering",
-      description: "Delivered architectural, civil, and MEP projects",
+      year: "2022",
+      title: "Strengthening Expertise",
+      description:
+        "Deepened industry knowledge and established consistent workflows and client collaboration practices.",
     },
     {
       year: "2025",
-      title: "Regional Expansion",
-      description: "Extended services across Southeast Europe",
+      title: "Official Company Launch",
+      description:
+        "Founded under the current name, bringing years of experience together into a formal business.",
+    },
+    {
+      year: "2026",
+      title: "Looking Ahead",
+      description:
+        "Focused on growth, innovation, and delivering high-quality solutions to a broader client base.",
     },
     {
       year: "2027",
-      title: "Advanced Delivery",
-      description: "Enhanced coordination and project efficiency",
+      title: "Scaling Operations",
+      description:
+        "Planning to expand the team and take on larger, more complex projects.",
+    },
+    {
+      year: "2028",
+      title: "Market Expansion",
+      description:
+        "Aiming to enter new markets and build long-term partnerships.",
+    },
+    {
+      year: "2029",
+      title: "Innovation & New Services",
+      description:
+        "Exploring new technologies and expanding service offerings.",
     },
     {
       year: "2030",
-      title: "Industry Leader",
-      description: "Recognized leader in integrated engineering services",
+      title: "Established Industry Presence",
+      description:
+        "Working toward becoming a recognized and trusted name in the field.",
     },
   ];
 
