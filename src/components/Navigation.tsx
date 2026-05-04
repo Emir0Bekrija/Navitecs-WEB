@@ -13,7 +13,7 @@ export default function Navigation() {
   const pathname = usePathname();
 
   const navLinks = [
-    { name: "Home", path: "/home" },
+    { name: "Home", path: "/" },
     { name: "About", path: "/about" },
     { name: "Services", path: "/services" },
     { name: "Projects", path: "/projects" },
@@ -23,16 +23,16 @@ export default function Navigation() {
 
   const isActive = (path: string) => {
     if (path === "/") {
-      return pathname === "/home";
+      return pathname === "/";
     }
     return pathname.startsWith(path);
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10">
+    <nav aria-label="Main navigation" className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <Link href="/" className="flex items-center space-x-2 group">
+          <Link href="/" aria-label="NAVITECS Home" className="flex items-center space-x-2 group">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] blur-lg opacity-30 group-hover:opacity-50 transition-opacity" />
               <Image

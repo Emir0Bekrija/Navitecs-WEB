@@ -21,7 +21,14 @@
       "Bash(npx web-push:*)",
       "Bash(node -e \"const deps = require\\('./package.json'\\); console.log\\(JSON.stringify\\({...deps.dependencies, ...deps.devDependencies}, null, 2\\)\\)\")",
       "Bash(node -e \"require\\('fflate'\\); console.log\\('ok'\\)\")",
-      "Bash(node -e \"const { zipSync } = require\\('fflate'\\); const z = zipSync\\({ 'hello.txt': Buffer.from\\('hello'\\) }\\); console.log\\('zip size:', z.length\\)\")"
+      "Bash(node -e \"const { zipSync } = require\\('fflate'\\); const z = zipSync\\({ 'hello.txt': Buffer.from\\('hello'\\) }\\); console.log\\('zip size:', z.length\\)\")",
+      "Bash(xargs grep:*)",
+      "Bash(find:*)",
+      "Bash(wc:*)",
+      "Bash(xargs head:*)",
+      "Bash(head -5 /c/EMIR/Navitecs/navitecs.next.js/src/app/*/page.tsx)",
+      "Bash(head -1 /c/EMIR/Navitecs/navitecs.next.js/src/components/pages/*.tsx)",
+      "Bash(grep:*)"
     ]
   }
 }

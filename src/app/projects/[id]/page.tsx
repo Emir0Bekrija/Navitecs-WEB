@@ -61,5 +61,23 @@ export default async function Page({ params }: Props) {
     order:          p.order,
   };
 
-  return <ProjectDetailsClient project={project} />;
+  const projectSchema = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: p.seoTitle ?? p.title,
+    description: p.seoDescription ?? p.description.slice(0, 160),
+    url: `https://navitecs.ba/projects/${id}`,
+    creator: { "@type": "Organization", name: "NAVITECS" },
+    ...(p.featuredImage ? { image: p.featuredImage } : {}),
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(projectSchema) }}
+      />
+      <ProjectDetailsClient project={project} />
+    </>
+  );
 }

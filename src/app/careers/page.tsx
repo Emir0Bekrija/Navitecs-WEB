@@ -37,5 +37,36 @@ export default async function Page() {
     createdAt: j.createdAt.toISOString(),
   }));
 
-  return <CareersClient initialJobs={jobs} generalJobId={generalJob?.id ?? null} />;
+  const jobPostingSchema = rows
+    .filter((j) => !j.isGeneral)
+    .map((j) => ({
+      "@context": "https://schema.org",
+      "@type": "JobPosting",
+      title: j.title,
+      description: j.summary || j.description,
+      datePosted: j.createdAt.toISOString().split("T")[0],
+      employmentType: j.type === "Full-time" ? "FULL_TIME" : j.type === "Part-time" ? "PART_TIME" : j.type,
+      jobLocation: {
+        "@type": "Place",
+        address: j.location,
+      },
+      hiringOrganization: {
+        "@type": "Organization",
+        name: "NAVITECS",
+        sameAs: "https://navitecs.ba",
+      },
+      directApply: true,
+    }));
+
+  return (
+    <>
+      {jobPostingSchema.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingSchema) }}
+        />
+      )}
+      <CareersClient initialJobs={jobs} generalJobId={generalJob?.id ?? null} />
+    </>
+  );
 }

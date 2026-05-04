@@ -240,9 +240,9 @@ export default function ProjectsClient({
                       <Building2 className="text-gray-600" size={16} />
                     </div>
 
-                    <h3 className="text-lg font-semibold mb-2 group-hover:text-[#00AEEF] transition-colors relative z-20 leading-snug">
+                    <h2 className="text-lg font-semibold mb-2 group-hover:text-[#00AEEF] transition-colors relative z-20 leading-snug">
                       {project.title}
-                    </h3>
+                    </h2>
 
                     <p className="text-gray-400 text-sm mb-4 flex-1 relative z-20 line-clamp-2">
                       {project.description}

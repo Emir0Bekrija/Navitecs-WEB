@@ -50,7 +50,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative bg-black/50 border-t border-white/10">
+    <footer aria-label="Site footer" className="relative bg-black/50 border-t border-white/10">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           <div className="col-span-1 md:col-span-2">

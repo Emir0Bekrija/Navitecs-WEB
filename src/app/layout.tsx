@@ -6,15 +6,13 @@ import "@/styles/index.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://navitecs.ba"),
   title: {
     default: "NAVITECS | BIM-Focused Engineering & Architecture",
     template: "%s | NAVITECS",
   },
   description:
     "BIM-focused engineering and architecture consulting company. Delivering precision coordination and technical solutions for building development.",
-  alternates: {
-    canonical: process.env.NEXT_PUBLIC_BASE_URL || "https://navitecs.ba",
-  },
   openGraph: {
     title: "NAVITECS | BIM-Focused Engineering & Architecture",
     description:
@@ -32,6 +30,13 @@ export const metadata: Metadata = {
     locale: "en_US",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "NAVITECS | BIM-Focused Engineering & Architecture",
+    description:
+      "BIM-focused engineering and architecture consulting company. Delivering precision coordination and technical solutions for building development.",
+    images: ["https://navitecs.ba/og-image.jpg"],
+  },
   robots: {
     index: true,
     follow: true,
@@ -43,8 +48,29 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "NAVITECS",
+    url: "https://navitecs.ba",
+    sameAs: ["https://navitecs.com"],
+    description:
+      "BIM-focused engineering and architecture consulting company. Delivering precision coordination and technical solutions for building development.",
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer service",
+      url: "https://navitecs.ba/contact",
+    },
+  };
+
   return (
     <html lang="en" data-scroll-behavior="smooth">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+      </head>
       <body className={`${inter.className} min-h-screen bg-black text-white`}>
         <RootLayoutWrapper>{children}</RootLayoutWrapper>
       </body>
