@@ -4,6 +4,7 @@ import { usePageView } from "@/hooks/usePageView";
 import { motion } from "framer-motion";
 import { Target, Eye, Layers, Users, Award, CheckCircle } from "lucide-react";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
+import type { Variants } from "framer-motion";
 
 export default function AboutClient() {
   usePageView();
@@ -119,6 +120,33 @@ export default function AboutClient() {
     },
   ];
 
+  const cardVariants: Variants = {
+    hidden: { opacity: 0, y: 26, scale: 0.96 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 420,
+        damping: 22,
+        mass: 0.7,
+      },
+    },
+    hover: {
+      y: -16,
+      scale: 1.02,
+      rotateX: 1,
+      transition: {
+        type: "spring",
+        stiffness: 420,
+        damping: 20,
+        mass: 0.45,
+        velocity: 2,
+      },
+    },
+  };
+
   return (
     <div className="overflow-x-hidden">
       <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden">
@@ -203,12 +231,12 @@ export default function AboutClient() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="relative grid grid-cols-1 md:grid-cols-2 gap-12 bg-black/10">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -8 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="relative rounded-2xl border border-white/50 p-8 shadow-lg overflow-hidden bg-black/20 hover:bg-black/90 duration-200 ease-in-out"
+              variants={cardVariants}
+              initial="hidden"
+              whileInView="visible"
+              whileHover="hover"
+              viewport={{ once: true, amount: 0.3 }}
+              className="relative rounded-2xl border border-white/50 p-8 shadow-lg overflow-hidden bg-black/20 hover:bg-black/90"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-[#00AEEF]/20 to-[#00FF9C]/20" />
               <div className="relative z-10">
@@ -226,12 +254,12 @@ export default function AboutClient() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -8 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="relative rounded-2xl border border-white/50 p-8 shadow-lg overflow-hidden bg-black/20 hover:bg-black/90 duration-200 ease-in-out"
+              variants={cardVariants}
+              initial="hidden"
+              whileInView="visible"
+              whileHover="hover"
+              viewport={{ once: true, amount: 0.3 }}
+              className="relative rounded-2xl border border-white/50 p-8 shadow-lg overflow-hidden bg-black/20 hover:bg-black/90"
             >
               <div className="absolute inset-0 bg-linear-to-br from-[#00FF9C]/20 to-[#00AEEF]/20" />
               <div className="relative z-10">
