@@ -453,7 +453,10 @@ export default function ServicesClient() {
             </h2>
             <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
               Contact us to learn how our BIM and engineering expertise can
-              optimize your building development process.
+              optimize your building development process.{" "}
+              <Link href="/about" className="text-[#00AEEF] hover:underline">
+                Learn about our team
+              </Link>.
             </p>
             <Link
               href="/contact#conversation"

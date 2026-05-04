@@ -71,11 +71,25 @@ export default async function Page({ params }: Props) {
     ...(p.featuredImage ? { image: p.featuredImage } : {}),
   };
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://navitecs.ba/" },
+      { "@type": "ListItem", position: 2, name: "Projects", item: "https://navitecs.ba/projects" },
+      { "@type": "ListItem", position: 3, name: p.seoTitle ?? p.title, item: `https://navitecs.ba/projects/${id}` },
+    ],
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(projectSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       <ProjectDetailsClient project={project} />
     </>

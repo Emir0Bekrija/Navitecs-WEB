@@ -50,7 +50,7 @@ export default function Navigation() {
               <Link
                 key={link.path}
                 href={link.path}
-                className="relative px-2 lg:px-4 py-2 text-sm lg:text-lg font-medium transition-colors group"
+                className="relative px-2 lg:px-4 py-2 text-sm lg:text-lg font-medium transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00AEEF] focus-visible:rounded-lg"
               >
                 <span
                   className={`relative z-10 ${

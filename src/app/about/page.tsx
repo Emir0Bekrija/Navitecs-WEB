@@ -4,14 +4,14 @@ import AboutClient from "../../components/pages/AboutClient";
 export const metadata: Metadata = {
   title: "About Us",
   description:
-    "Learn more about NAVITECS, our vision, and our team of experts in BIM engineering.",
+    "Learn about NAVITECS — a BIM-focused engineering consultancy delivering precision coordination and technical solutions. Meet our team of experts in architectural, structural, and MEP engineering.",
   alternates: {
     canonical: "https://navitecs.ba/about",
   },
   openGraph: {
     title: "About Us | NAVITECS",
     description:
-      "Learn more about NAVITECS, our vision, and our team of experts in BIM engineering.",
+      "Learn about NAVITECS — a BIM-focused engineering consultancy delivering precision coordination and technical solutions in architectural, structural, and MEP engineering.",
     url: "https://navitecs.ba/about",
   },
 };

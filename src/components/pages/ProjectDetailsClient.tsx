@@ -532,7 +532,7 @@ function BlockRenderer({
           >
             <ImageWithFallback
               src={url}
-              alt={String(d.alt ?? "")}
+              alt={String(d.alt ?? d.caption ?? "Project image")}
               className="w-full h-full object-contain transition-[filter] duration-200 group-hover:brightness-75"
             />
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">

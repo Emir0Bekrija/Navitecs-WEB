@@ -28,7 +28,12 @@
       "Bash(xargs head:*)",
       "Bash(head -5 /c/EMIR/Navitecs/navitecs.next.js/src/app/*/page.tsx)",
       "Bash(head -1 /c/EMIR/Navitecs/navitecs.next.js/src/components/pages/*.tsx)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(tasklist)",
+      "Bash(findstr /i \"next\")",
+      "Bash(chmod +x /tmp/check_meta.sh)",
+      "Bash(/tmp/check_meta.sh)",
+      "Bash(ls -la /c/EMIR/Navitecs/navitecs.next.js/src/app/*.tsx)"
     ]
   }
 }

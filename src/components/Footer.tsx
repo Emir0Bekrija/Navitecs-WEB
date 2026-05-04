@@ -101,7 +101,7 @@ export default function Footer() {
                 <li key={link.path}>
                   <Link
                     href={link.path}
-                    className="text-gray-400 hover:text-white transition-colors"
+                    className="text-gray-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00AEEF] focus-visible:rounded"
                   >
                     {link.name}
                   </Link>

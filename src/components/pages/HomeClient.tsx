@@ -322,7 +322,10 @@ export default function HomeClient() {
             </h2>
             <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
               Let&apos;s discuss how our BIM and engineering expertise can bring
-              precision and efficiency to your building development.
+              precision and efficiency to your building development.{" "}
+              <Link href="/about" className="text-[#00AEEF] hover:underline">
+                Learn more about us
+              </Link>.
             </p>
             <Link
               href="/contact"

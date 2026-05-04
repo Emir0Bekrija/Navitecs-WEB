@@ -22,9 +22,15 @@ export default function RootLayoutWrapper({
 
   return (
     <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-black focus:text-white focus:border focus:border-white/20 focus:rounded-lg"
+      >
+        Skip to content
+      </a>
       <CustomCursor />
       <Navigation />
-      <main className="pt-20">{children}</main>
+      <main id="main-content" className="pt-20">{children}</main>
       <Footer />
       <PromoPopup />
       {/* Cookie consent banner — shown on first visit, manages GA4 loading */}

@@ -3,8 +3,13 @@ import TermsOfServiceClient from "@/components/pages/TermsOfServiceClient";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
-  description: "Terms and conditions governing use of the NAVITECS website.",
+  description: "Read the terms and conditions governing the use of the NAVITECS website and services. Understand your rights, responsibilities, and our policies for site usage.",
   alternates: { canonical: "https://navitecs.ba/terms-of-service" },
+  openGraph: {
+    title: "Terms of Service | NAVITECS",
+    description: "Terms and conditions governing the use of the NAVITECS website and services.",
+    url: "https://navitecs.ba/terms-of-service",
+  },
   robots: { index: true, follow: false },
 };
 

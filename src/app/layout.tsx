@@ -53,9 +53,16 @@ export default function RootLayout({
     "@type": "Organization",
     name: "NAVITECS",
     url: "https://navitecs.ba",
+    logo: "https://navitecs.ba/icon.png",
     sameAs: ["https://navitecs.com"],
     description:
       "BIM-focused engineering and architecture consulting company. Delivering precision coordination and technical solutions for building development.",
+    email: "info@navitecs.com",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Sarajevo",
+      addressCountry: "BA",
+    },
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer service",

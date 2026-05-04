@@ -6,14 +6,14 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Careers",
-  description: "Join our team. Check out the latest job openings at NAVITECS.",
+  description: "Join the NAVITECS engineering team. Browse open positions in BIM coordination, MEP design, and architectural engineering. Apply today and help shape the future of building development.",
   alternates: {
     canonical: "https://navitecs.ba/careers",
   },
   openGraph: {
     title: "Careers | NAVITECS",
     description:
-      "Join our team. Check out the latest job openings at NAVITECS.",
+      "Join the NAVITECS engineering team. Browse open positions in BIM coordination, MEP design, and architectural engineering.",
     url: "https://navitecs.ba/careers",
   },
 };
