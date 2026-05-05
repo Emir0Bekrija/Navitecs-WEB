@@ -317,7 +317,7 @@ export default function ServicesClient() {
       </section>
 
       <section>
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-20">
           <div className="space-y-32">
             {services.map((service, index) => (
               <motion.div
@@ -456,7 +456,8 @@ export default function ServicesClient() {
               optimize your building development process.{" "}
               <Link href="/about" className="text-[#00AEEF] hover:underline">
                 Learn about our team
-              </Link>.
+              </Link>
+              .
             </p>
             <Link
               href="/contact#conversation"

@@ -33,7 +33,8 @@
       "Bash(findstr /i \"next\")",
       "Bash(chmod +x /tmp/check_meta.sh)",
       "Bash(/tmp/check_meta.sh)",
-      "Bash(ls -la /c/EMIR/Navitecs/navitecs.next.js/src/app/*.tsx)"
+      "Bash(ls -la /c/EMIR/Navitecs/navitecs.next.js/src/app/*.tsx)",
+      "Bash(curl:*)"
     ]
   }
 }

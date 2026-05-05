@@ -44,7 +44,7 @@ export default function HomeClient() {
   ];
 
   const industries = [
-    "AEC, Architectural Electrical and Construction",
+    "Architectural Electrical and Construction",
     "Infrastructure and Public Works",
     "Industrial and Process Plants",
     "Specialized Sectors and Services",
@@ -325,7 +325,8 @@ export default function HomeClient() {
               precision and efficiency to your building development.{" "}
               <Link href="/about" className="text-[#00AEEF] hover:underline">
                 Learn more about us
-              </Link>.
+              </Link>
+              .
             </p>
             <Link
               href="/contact"
