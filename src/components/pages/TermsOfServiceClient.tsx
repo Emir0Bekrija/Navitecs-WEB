@@ -15,7 +15,7 @@ export default function TermsOfServiceClient() {
             Legal
           </p>
           <h1 className="text-4xl font-bold mb-4">Terms of Service</h1>
-          <p className="text-gray-400 text-sm">Last updated: April 2026</p>
+          <p className="text-gray-400 text-sm">Last updated: May 2026</p>
         </div>
 
         <div className="space-y-12 text-[15px] leading-relaxed text-gray-300">
@@ -26,8 +26,8 @@ export default function TermsOfServiceClient() {
             </h2>
             <p>
               By accessing and using{" "}
-              <span className="text-white">navitecs.ba</span> (the
-              &ldquo;Site&rdquo;), you agree to be bound by these Terms of
+              <span className="text-white">navitecs.ba / navitecs.com</span>{" "}
+              (the &ldquo;Site&rdquo;), you agree to be bound by these Terms of
               Service (&ldquo;Terms&rdquo;) and our{" "}
               <Link
                 href="/privacy-policy"
@@ -217,7 +217,39 @@ export default function TermsOfServiceClient() {
           {/* 9 */}
           <section>
             <h2 className="text-xl font-semibold text-white mb-4">
-              9. Limitation of Liability
+              9. Cookies &amp; Analytics
+            </h2>
+            <p>
+              The Site uses a cookie consent banner that appears on your first
+              visit. You may accept or reject non-essential (analytics) cookies
+              at any time. Your consent preference is stored in your
+              browser&apos;s localStorage.
+            </p>
+            <p className="mt-3">
+              If you grant analytics consent, the Site loads Google Analytics 4
+              and records page views, referrer data, time on page, and your
+              approximate country (derived from your IP address, which is not
+              stored). No advertising cookies or tracking pixels are used. You
+              can change your preference at any time via the &ldquo;Cookie
+              Settings&rdquo; link in the footer.
+            </p>
+            <p className="mt-3">
+              For full details on what data is collected and how it is used,
+              please refer to our{" "}
+              <Link
+                href="/privacy-policy"
+                className="text-[#00AEEF] hover:underline"
+              >
+                Privacy Policy
+              </Link>
+              .
+            </p>
+          </section>
+
+          {/* 10 */}
+          <section>
+            <h2 className="text-xl font-semibold text-white mb-4">
+              10. Limitation of Liability
             </h2>
             <p>
               To the maximum extent permitted by applicable law, NAVITECS
@@ -238,10 +270,10 @@ export default function TermsOfServiceClient() {
             </p>
           </section>
 
-          {/* 10 */}
+          {/* 11 */}
           <section>
             <h2 className="text-xl font-semibold text-white mb-4">
-              10. Governing Law & Dispute Resolution
+              11. Governing Law &amp; Dispute Resolution
             </h2>
             <p>
               These Terms shall be governed by and construed in accordance with
@@ -257,10 +289,10 @@ export default function TermsOfServiceClient() {
             </p>
           </section>
 
-          {/* 11 */}
+          {/* 12 */}
           <section>
             <h2 className="text-xl font-semibold text-white mb-4">
-              11. Severability
+              12. Severability
             </h2>
             <p>
               If any provision of these Terms is found to be unenforceable or
@@ -270,10 +302,10 @@ export default function TermsOfServiceClient() {
             </p>
           </section>
 
-          {/* 12 */}
+          {/* 13 */}
           <section>
             <h2 className="text-xl font-semibold text-white mb-4">
-              12. Contact Us
+              13. Contact Us
             </h2>
             <p className="mb-4">
               If you have any questions about these Terms, please contact us:

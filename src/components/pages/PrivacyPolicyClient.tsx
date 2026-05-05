@@ -15,7 +15,7 @@ export default function PrivacyPolicyClient() {
             Legal
           </p>
           <h1 className="text-4xl font-bold mb-4">Privacy Policy</h1>
-          <p className="text-gray-400 text-sm">Last updated: April 2026</p>
+          <p className="text-gray-400 text-sm">Last updated: May 2026</p>
         </div>
 
         <div className="space-y-12 text-[15px] leading-relaxed text-gray-300">
@@ -34,8 +34,8 @@ export default function PrivacyPolicyClient() {
             <p className="mt-3">
               This Privacy Policy describes how we collect, use, and safeguard
               information when you visit{" "}
-              <span className="text-white">navitecs.ba</span> (the
-              &ldquo;Site&rdquo;), submit a contact inquiry, or apply for a
+              <span className="text-white">navitecs.ba / navitecs.com</span>{" "}
+              (the &ldquo;Site&rdquo;), submit a contact inquiry, or apply for a
               position with us. Please read it carefully. If you disagree with
               its terms, please discontinue use of the Site.
             </p>
@@ -112,38 +112,97 @@ export default function PrivacyPolicyClient() {
               2.3 Automatically Collected Information
             </h3>
             <p>
-              We collect anonymous page-view data — specifically the URL path of
-              pages visited on the Site (for example{" "}
-              <code className="text-[#00AEEF] text-sm bg-white/5 px-1 rounded">
-                /services
-              </code>{" "}
-              or{" "}
-              <code className="text-[#00AEEF] text-sm bg-white/5 px-1 rounded">
-                /projects
-              </code>
-              ). This data contains{" "}
-              <strong className="text-white">no personal information</strong>,
-              is stored on our own servers, and is not shared with any third
-              party. We do not use Google Analytics, Meta Pixel, or any other
-              third-party tracking or advertising platform.
+              When you grant analytics consent through our cookie banner, we
+              collect the following data:
             </p>
+            <ul className="mt-3 list-none space-y-1 pl-4 border-l border-white/10">
+              <li>
+                Page path visited (e.g.{" "}
+                <code className="text-[#00AEEF] text-sm bg-white/5 px-1 rounded">
+                  /services
+                </code>
+                )
+              </li>
+              <li>Referrer URL (the page that linked you to our Site)</li>
+              <li>Time spent on each page</li>
+              <li>
+                Country of origin — derived from your IP address on the server
+                side; your IP address itself is{" "}
+                <strong className="text-white">not stored</strong>
+              </li>
+            </ul>
             <p className="mt-3">
-              We do <strong className="text-white">not</strong> collect IP
-              addresses, device fingerprints, or browser information from
-              regular site visitors.
+              This data is stored on our own servers and is used solely to
+              understand which pages are most useful to visitors.
             </p>
 
             <h3 className="text-base font-semibold text-white mt-6 mb-2">
-              2.4 Cookies
+              2.4 Google Analytics
             </h3>
             <p>
-              The Site does <strong className="text-white">not</strong> use
-              cookies for regular visitors. A single session cookie is set
-              exclusively when an authorised administrator logs into the private
-              admin panel. This cookie is essential for authentication, contains
-              no personal data beyond a cryptographic session token, and is
-              automatically deleted when the session expires or the
-              administrator logs out.
+              If you grant analytics consent, we also load{" "}
+              <strong className="text-white">Google Analytics 4</strong>{" "}
+              (provided by Google LLC). Google Analytics uses cookies to collect
+              aggregated, anonymised usage data such as pages viewed, session
+              duration, and approximate geographic region. We use Google Consent
+              Mode v2 — the Google Analytics script is{" "}
+              <strong className="text-white">never loaded </strong> unless you
+              explicitly grant consent. We do not enable advertising features,
+              and ad_storage, ad_user_data, and ad_personalization are always
+              set to &ldquo;denied&rdquo;.
+            </p>
+            <p className="mt-3">
+              For more information on how Google processes data, see{" "}
+              <a
+                href="https://policies.google.com/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#00AEEF] hover:underline"
+              >
+                Google&apos;s Privacy Policy
+              </a>
+              .
+            </p>
+
+            <h3 className="text-base font-semibold text-white mt-6 mb-2">
+              2.5 Cookies &amp; Local Storage
+            </h3>
+            <p className="mb-3">
+              The Site uses cookies and browser storage as follows:
+            </p>
+            <div className="space-y-3">
+              <div className="pl-4 border-l border-white/10">
+                <p className="text-white font-medium">
+                  Consent preference (localStorage)
+                </p>
+                <p className="text-gray-400 text-sm mt-0.5">
+                  Your cookie consent choice is stored in your browser&apos;s
+                  localStorage (not as a cookie). This allows us to remember
+                  your preference on return visits without sending it to the
+                  server.
+                </p>
+              </div>
+              <div className="pl-4 border-l border-white/10">
+                <p className="text-white font-medium">
+                  Google Analytics cookies (optional)
+                </p>
+                <p className="text-gray-400 text-sm mt-0.5">
+                  Only set if you grant analytics consent. These include{" "}
+                  <code className="text-[#00AEEF] text-xs bg-white/5 px-1 rounded">
+                    _ga
+                  </code>{" "}
+                  and{" "}
+                  <code className="text-[#00AEEF] text-xs bg-white/5 px-1 rounded">
+                    _ga_*
+                  </code>{" "}
+                  cookies used by Google to distinguish users and sessions. They
+                  expire after 2 years and 24 hours respectively.
+                </p>
+              </div>
+            </div>
+            <p className="mt-4">
+              You can change your analytics consent at any time by clicking the
+              &ldquo;Cookie Settings&rdquo; link in the Site footer.
             </p>
           </section>
 
@@ -162,7 +221,8 @@ export default function PrivacyPolicyClient() {
                 </p>
                 <p className="text-gray-400 text-sm mt-0.5">
                   You voluntarily submit your information through our contact or
-                  application forms.
+                  application forms. You also explicitly grant or deny consent
+                  for analytics tracking via our cookie consent banner.
                 </p>
               </div>
               <div className="pl-4 border-l border-white/10">
@@ -245,6 +305,10 @@ export default function PrivacyPolicyClient() {
                 behalf under strict data processing agreements
               </li>
               <li>
+                With Google LLC (Google Analytics 4) — only if you have granted
+                analytics consent, and only aggregated, anonymised usage data
+              </li>
+              <li>
                 When required by law, court order, or governmental authority
               </li>
               <li>
@@ -267,18 +331,20 @@ export default function PrivacyPolicyClient() {
               <div className="pl-4 border-l border-white/10">
                 <p className="text-white font-medium">Contact inquiries</p>
                 <p className="text-gray-400 text-sm mt-0.5">
-                  Retained for as long as necessary to handle your inquiry and
-                  for up to 3 years thereafter for legitimate business records
-                  purposes.
+                  Retained for up to 12 months from the date of submission, as
+                  stated in the consent you provide when submitting the form.
+                  After this period your data is deleted unless you submit a new
+                  inquiry.
                 </p>
               </div>
               <div className="pl-4 border-l border-white/10">
                 <p className="text-white font-medium">Job applications</p>
                 <p className="text-gray-400 text-sm mt-0.5">
-                  Retained for up to 2 years from the date of submission. CVs
-                  and supporting documents are retained for the same period to
-                  allow us to contact you about future suitable positions unless
-                  you request earlier deletion.
+                  Retained for up to 12 months from the date of submission, as
+                  stated in the consent you provide when applying. CVs and
+                  supporting documents are retained for the same period to allow
+                  us to contact you about future suitable positions unless you
+                  request earlier deletion.
                 </p>
               </div>
               <div className="pl-4 border-l border-white/10">
