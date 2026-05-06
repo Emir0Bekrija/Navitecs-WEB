@@ -20,6 +20,8 @@ import {
   ScrollText,
   Megaphone,
   BarChart2,
+  UsersRound,
+  Star,
 } from "lucide-react";
 import AdminNotifications from "@/components/admin/AdminNotifications";
 
@@ -58,6 +60,16 @@ const BASE_NAV = [
     href: "/navitecs-control-admin/projects",
     label: "Projects",
     icon: FolderKanban,
+  },
+  {
+    href: "/navitecs-control-admin/team",
+    label: "Team",
+    icon: UsersRound,
+  },
+  {
+    href: "/navitecs-control-admin/about-featured",
+    label: "Featured on About",
+    icon: Star,
   },
   {
     href: "/navitecs-control-admin/popup",

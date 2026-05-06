@@ -112,6 +112,31 @@ export type GroupedApplicant = {
   applications: ApplicationEntry[];
 };
 
+// ── About Team Feature ────────────────────────────────────────────────────────
+
+export type AboutTeamFeature = {
+  id: string;
+  title: string;
+  text: string;
+  imageUrl?: string | null;
+  enabled: boolean;
+};
+
+// ── Team Members ──────────────────────────────────────────────────────────────
+
+export type TeamMember = {
+  id: string;
+  name: string;
+  role: string;
+  bio?: string | null;
+  imageUrl?: string | null;
+  featured: boolean;
+  active: boolean;
+  order: number;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 export type CompanyContactRanking = {
   id: string;
   score: number | null;

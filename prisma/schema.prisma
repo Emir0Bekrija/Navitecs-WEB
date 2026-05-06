@@ -221,6 +221,37 @@ model CompanyContact {
   @@map("company_contacts")
 }
 
+// ─── About Page Featured Section ──────────────────────────────────────────────
+
+model AboutTeamFeature {
+  id        String   @id @default(cuid()) @db.VarChar(36)
+  title     String   @default("Our Team") @db.VarChar(255)
+  text      String   @db.Text
+  imageUrl  String?  @db.VarChar(500)
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("about_team_feature")
+}
+
+// ─── Team Members ─────────────────────────────────────────────────────────────
+
+model TeamMember {
+  id        String   @id @default(cuid()) @db.VarChar(36)
+  name      String   @db.VarChar(255)
+  role      String   @db.VarChar(255)
+  bio       String?  @db.Text
+  imageUrl  String?  @db.VarChar(500)
+  featured  Boolean  @default(false)
+  active    Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("team_members")
+}
+
 // ─── Page View Tracking ───────────────────────────────────────────────────────
 
 model PageView {

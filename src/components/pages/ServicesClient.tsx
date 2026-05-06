@@ -1,7 +1,7 @@
 "use client";
 import { usePageView } from "@/hooks/usePageView";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useState, useRef } from "react";
 import {
@@ -253,39 +253,53 @@ export default function ServicesClient() {
       title: "Initial Consultation",
       description:
         "Understanding project requirements, scope, and technical constraints.",
+      expandedDescription:
+        "We start every BIM project by meeting with stakeholders to understand the building's purpose, design intent, and technical constraints. This includes defining the scope of BIM coordination, identifying key disciplines involved, and establishing project timelines.",
     },
     {
       number: "02",
       title: "Analysis & Planning",
       description:
         "Detailed assessment and development of comprehensive project strategy.",
+      expandedDescription:
+        "Our team develops a detailed BIM Execution Plan (BEP) outlining modeling standards, Level of Development (LOD) requirements, coordination workflows, and deliverable milestones — ensuring all parties are aligned from day one.",
     },
     {
       number: "03",
       title: "Design Development",
       description:
         "Detailed design of all systems with technical documentation.",
+      expandedDescription:
+        "We create detailed 3D models for all disciplines — architectural, structural, and MEP — complete with technical documentation, system layouts, and specifications ready for coordination.",
     },
     {
       number: "04",
       title: "BIM Coordination",
       description:
         "Creating coordinated 3D models and identifying potential conflicts.",
+      expandedDescription:
+        "Using multidisciplinary clash detection, we identify and resolve conflicts between architectural, structural, mechanical, electrical, and plumbing systems before they become costly issues on site.",
     },
     {
       number: "05",
       title: "Quality Review",
       description: "Rigorous checking for compliance and constructability.",
+      expandedDescription:
+        "Every model undergoes rigorous quality assurance — checking for code compliance, constructability, data integrity, and adherence to international BIM standards such as ISO 19650.",
     },
     {
       number: "06",
       title: "Delivery & Support",
       description:
         "Final documentation and ongoing construction phase support.",
+      expandedDescription:
+        "We deliver construction-ready documentation including coordinated drawings, quantity takeoffs, and 3D models. Our support continues through the construction phase to resolve on-site queries and model updates.",
     },
   ];
 
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [hoveredProcess, setHoveredProcess] = useState<number | null>(null);
+  const [hasHoveredProcess, setHasHoveredProcess] = useState(false);
 
   return (
     <div className="overflow-x-hidden">
@@ -310,7 +324,8 @@ export default function ServicesClient() {
             </h1>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto">
               Comprehensive BIM consulting and engineering solutions for
-              building projects of all scales
+              building projects of all scales — from Bosnia and Herzegovina to
+              clients across Europe and beyond
             </p>
           </motion.div>
         </div>
@@ -406,14 +421,14 @@ export default function ServicesClient() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Our{" "}
+              What Does a BIM Project{" "}
               <span className="bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] bg-clip-text text-transparent">
-                Process
+                Look Like?
               </span>
             </h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              A systematic approach ensuring precision and quality at every
-              stage
+              From initial consultation to construction support — here&apos;s
+              how we deliver BIM projects step by step
             </p>
           </motion.div>
 
@@ -425,13 +440,69 @@ export default function ServicesClient() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="relative bg-black border border-white/10 rounded-2xl p-6 hover:border-[#00AEEF]/70 transition-all group"
+                onMouseEnter={() => {
+                  if (window.matchMedia("(pointer: fine)").matches) {
+                    setHoveredProcess(index);
+                    if (!hasHoveredProcess) setHasHoveredProcess(true);
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (window.matchMedia("(pointer: fine)").matches)
+                    setHoveredProcess(null);
+                }}
+                onClick={() => {
+                  if (!window.matchMedia("(pointer: fine)").matches)
+                    setHoveredProcess(
+                      hoveredProcess === index ? null : index,
+                    );
+                }}
+                className={`relative bg-black border rounded-2xl p-6 transition-colors cursor-default ${
+                  hoveredProcess === index
+                    ? "border-[#00AEEF]/70 z-10"
+                    : "border-white/10"
+                }`}
               >
-                <div className="text-5xl font-bold bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] bg-clip-text text-transparent mb-4 opacity-30 group-hover:opacity-50 transition-opacity">
+                <div
+                  className={`text-5xl font-bold bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] bg-clip-text text-transparent mb-4 transition-opacity ${
+                    hoveredProcess === index ? "opacity-50" : "opacity-30"
+                  }`}
+                >
                   {step.number}
                 </div>
                 <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
                 <p className="text-gray-400 text-sm">{step.description}</p>
+                {index === 0 && !hasHoveredProcess && hoveredProcess !== 0 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: [0.4, 0.8, 0.4] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    className="mt-3 flex items-center gap-1.5 text-[#00AEEF] text-xs"
+                  >
+                    <span>Hover to learn more</span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="translate-y-px">
+                      <path d="M6 2.5v7M3 7l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </motion.div>
+                )}
+                <AnimatePresence>
+                  {hoveredProcess === index && (
+                    <motion.div
+                      initial={{ opacity: 0, y: index >= 3 ? 4 : -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: index >= 3 ? 4 : -4 }}
+                      transition={{ duration: 0.25, ease: "easeOut" }}
+                      className={`absolute left-0 right-0 bg-black border border-[#00AEEF]/40 rounded-2xl p-6 shadow-lg shadow-black/60 z-20 ${
+                        index >= 3
+                          ? "bottom-full mb-2"
+                          : "top-full mt-2"
+                      }`}
+                    >
+                      <p className="text-gray-300 text-sm leading-relaxed">
+                        {step.expandedDescription}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             ))}
           </div>

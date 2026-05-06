@@ -4,14 +4,14 @@ import ServicesClient from "../../components/pages/ServicesClient";
 export const metadata: Metadata = {
   title: "Our Services",
   description:
-    "Explore NAVITECS services: BIM consulting, MEP design, architectural and structural engineering, and project coordination. Precision solutions for residential, commercial, and infrastructure projects.",
+    "Explore NAVITECS services: BIM consulting, MEP design, architectural and structural engineering, and project coordination. International BIM services based in Bosnia and Herzegovina, serving Europe and beyond.",
   alternates: {
     canonical: "https://navitecs.ba/services",
   },
   openGraph: {
     title: "Our Services | NAVITECS",
     description:
-      "Explore NAVITECS services: BIM consulting, MEP design, architectural and structural engineering, and project coordination for building development.",
+      "Explore NAVITECS services: BIM consulting, MEP design, architectural and structural engineering, and project coordination. International BIM services from Bosnia and Herzegovina.",
     url: "https://navitecs.ba/services",
   },
 };

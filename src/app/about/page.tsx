@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { prisma } from "@/lib/db";
 import AboutClient from "../../components/pages/AboutClient";
+import type { AboutTeamFeature } from "@/types/index";
 
 export const metadata: Metadata = {
   title: "About Us",
@@ -16,6 +18,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Page() {
-  return <AboutClient />;
+export default async function Page() {
+  const aboutFeature = (await prisma.aboutTeamFeature.findFirst({
+    where: { enabled: true },
+    select: { id: true, title: true, text: true, imageUrl: true, enabled: true },
+  })) as AboutTeamFeature | null;
+
+  return <AboutClient aboutFeature={aboutFeature} />;
 }

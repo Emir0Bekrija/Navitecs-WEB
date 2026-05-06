@@ -2,11 +2,23 @@
 import { usePageView } from "@/hooks/usePageView";
 
 import { motion } from "framer-motion";
-import { Target, Eye, Layers, Users, Award, CheckCircle } from "lucide-react";
+import {
+  Target,
+  Eye,
+  Layers,
+  Users,
+  Award,
+  CheckCircle,
+  ArrowRight,
+} from "lucide-react";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
+import Link from "next/link";
 import type { Variants } from "framer-motion";
+import type { AboutTeamFeature } from "@/types/index";
 
-export default function AboutClient() {
+type Props = { aboutFeature?: AboutTeamFeature | null };
+
+export default function AboutClient({ aboutFeature }: Props) {
   usePageView();
   const milestones = [
     {
@@ -178,7 +190,7 @@ export default function AboutClient() {
       </section>
 
       <section>
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="pb-20 max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
@@ -278,6 +290,64 @@ export default function AboutClient() {
           </div>
         </div>
       </section>
+
+      {/* Team preview */}
+      {aboutFeature && (
+        <section className="py-24 bg-white/5">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <motion.div
+                initial={{ opacity: 0, x: 100 }}
+                whileInView={{ opacity: 1, x: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+              >
+                {aboutFeature.imageUrl && (
+                  <ImageWithFallback
+                    src={aboutFeature.imageUrl}
+                    alt={aboutFeature.title}
+                    className="w-full h-auto object-cover"
+                  />
+                )}
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+              >
+                <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                  {aboutFeature.title.includes(" ") ? (
+                    <>
+                      {aboutFeature.title.split(" ").slice(0, -1).join(" ")}{" "}
+                      <span className="bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] bg-clip-text text-transparent">
+                        {aboutFeature.title.split(" ").slice(-1)[0]}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] bg-clip-text text-transparent">
+                      {aboutFeature.title}
+                    </span>
+                  )}
+                </h2>
+                <p className="text-gray-400 text-lg leading-relaxed whitespace-pre-line">
+                  {aboutFeature.text}
+                </p>
+                <div className="mt-8">
+                  <Link
+                    href="/team"
+                    className="inline-flex items-center text-[#00AEEF] hover:text-[#00FF9C] transition-colors font-medium"
+                  >
+                    Meet the full team
+                    <ArrowRight className="ml-2" size={20} />
+                  </Link>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="py-24">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">

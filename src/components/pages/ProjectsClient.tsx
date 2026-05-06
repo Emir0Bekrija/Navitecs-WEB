@@ -233,24 +233,24 @@ export default function ProjectsClient({
 
                   {/* Content */}
                   <div className="p-6 flex-1 flex flex-col">
-                    <div className="flex items-center justify-between mb-2 relative z-20">
+                    <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-semibold text-[#00AEEF] uppercase tracking-wider">
                         {project.category}
                       </span>
                       <Building2 className="text-gray-600" size={16} />
                     </div>
 
-                    <h2 className="text-lg font-semibold mb-2 group-hover:text-[#00AEEF] transition-colors relative z-20 leading-snug">
+                    <h2 className="text-lg font-semibold mb-2 group-hover:text-[#00AEEF] transition-colors leading-snug">
                       {project.title}
                     </h2>
 
-                    <p className="text-gray-400 text-sm mb-4 flex-1 relative z-20 line-clamp-2">
+                    <p className="text-gray-400 text-sm mb-4 flex-1 line-clamp-2">
                       {project.description}
                     </p>
 
                     {/* Meta row */}
                     {(project.location || project.timeline) && (
-                      <div className="flex flex-wrap gap-3 mb-4 relative z-20">
+                      <div className="flex flex-wrap gap-3 mb-4">
                         {project.location && (
                           <span className="flex items-center gap-1 text-xs text-gray-500">
                             <MapPin size={11} />
@@ -267,7 +267,7 @@ export default function ProjectsClient({
                     )}
 
                     {/* Scope pills */}
-                    <div className="pt-4 border-t border-white/10 relative z-20">
+                    <div className="pt-4 border-t border-white/10">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex flex-wrap gap-1.5 flex-1 min-w-0">
                           {project.scopeOfWork.slice(0, 2).map((s) => (

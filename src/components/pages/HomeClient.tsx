@@ -107,7 +107,8 @@ export default function HomeClient() {
               <p className="text-xl text-gray-400 mb-8 max-w-xl">
                 NAVITECS delivers advanced BIM consulting and engineering
                 solutions, ensuring seamless coordination across all stages of
-                building development.
+                building development. Based in Sarajevo, Bosnia and
+                Herzegovina, we serve clients across Europe and internationally.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 mb-12">
@@ -223,9 +224,9 @@ export default function HomeClient() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Core{" "}
+              What are BIM Core{" "}
               <span className="bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] bg-clip-text text-transparent">
-                Services
+                Services?
               </span>
             </h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
