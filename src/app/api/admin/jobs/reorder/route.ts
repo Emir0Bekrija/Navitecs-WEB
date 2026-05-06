@@ -1,23 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getJobs, saveJobs } from "@/lib/data";
+import { z } from "zod";
+import { prisma } from "@/lib/db";
+import { requireAdmin } from "@/lib/proxy";
+
+const ReorderSchema = z.object({
+  ids: z.array(z.string()).min(1),
+});
 
 // POST /api/admin/jobs/reorder
 // Body: { ids: string[] } — full ordered list of job IDs
 export async function POST(request: NextRequest) {
-  const { ids } = await request.json() as { ids: string[] };
-  if (!Array.isArray(ids)) {
-    return NextResponse.json({ error: "ids must be an array" }, { status: 400 });
+  const deny = await requireAdmin();
+  if (deny) return deny;
+
+  const body = await request.json();
+  const parsed = ReorderSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "ids must be a non-empty array" }, { status: 400 });
   }
 
-  const jobs = await getJobs();
-  const jobMap = new Map(jobs.map((j) => [j.id, j]));
+  const { ids } = parsed.data;
 
-  // Rebuild the array in the given order, keeping any jobs not in ids at the end
-  const reordered = [
-    ...ids.map((id) => jobMap.get(id)).filter(Boolean),
-    ...jobs.filter((j) => !ids.includes(j.id)),
-  ] as typeof jobs;
+  // Update each job's order in a transaction
+  await prisma.$transaction(
+    ids.map((id, index) =>
+      prisma.job.updateMany({ where: { id }, data: { order: index } })
+    )
+  );
 
-  await saveJobs(reordered);
   return NextResponse.json({ ok: true });
 }

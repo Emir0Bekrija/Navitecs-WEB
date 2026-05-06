@@ -1,43 +1,144 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getProjects, saveProjects } from "@/lib/data";
-import type { Project } from "@/types/index";
+import { z } from "zod";
+import { prisma } from "@/lib/db";
+import { requireAdmin } from "@/lib/proxy";
+import type { Project, MediaItem } from "@/types/index";
+import type { ContentBlock } from "@/lib/blocks";
 
-// GET /api/admin/projects
-export async function GET() {
-  const projects = await getProjects();
-  return NextResponse.json(projects);
+// ── Zod schema ─────────────────────────────────────────────────────────────────
+
+const ProjectSchema = z.object({
+  title:          z.string().min(1).max(255),
+  category:       z.string().min(1).max(100),
+  location:       z.string().max(255).optional().default("").transform(v => v || null),
+  projectSize:    z.string().max(100).optional().default("").transform(v => v || null),
+  timeline:       z.string().max(100).optional().default("").transform(v => v || null),
+  numberOfUnits:  z.string().max(100).optional().default("").transform(v => v || null),
+  clientType:     z.string().max(100).optional().default("").transform(v => v || null),
+  description:    z.string().min(1),
+  featuredImage:  z.string().max(500).optional().default("").transform(v => v || null),
+  scopeOfWork:    z.array(z.string()).default([]),
+  toolsAndTech:   z.array(z.string()).default([]),
+  challenge:      z.string().optional().default("").transform(v => v || null),
+  solution:       z.string().optional().default("").transform(v => v || null),
+  results:        z.array(z.string()).default([]),
+  valueDelivered: z.array(z.string()).default([]),
+  media:          z.array(z.object({
+                    url:     z.string(),
+                    caption: z.string().optional(),
+                    type:    z.enum(["image", "video"]).optional(),
+                  })).default([]),
+  contentBlocks:  z.array(z.object({
+                    id:    z.string(),
+                    type:  z.string(),
+                    order: z.number(),
+                    data:  z.record(z.string(), z.unknown()),
+                  })).default([]),
+  status:         z.enum(["draft", "published"]).default("published"),
+  featured:       z.boolean().default(false),
+  seoTitle:       z.string().max(255).optional().default("").transform(v => v || null),
+  seoDescription: z.string().optional().default("").transform(v => v || null),
+});
+
+// ── DB row → frontend Project ──────────────────────────────────────────────────
+
+function toResponse(p: {
+  id: string; title: string; category: string; location: string | null;
+  projectSize: string | null; timeline: string | null; numberOfUnits: string | null;
+  clientType: string | null; description: string; featuredImage: string | null;
+  scopeOfWork: unknown; toolsAndTech: unknown; challenge: string | null;
+  solution: string | null; results: unknown; valueDelivered: unknown;
+  media: unknown; contentBlocks: unknown; status: string; featured: boolean;
+  seoTitle: string | null; seoDescription: string | null;
+  order: number; createdAt: Date; updatedAt: Date;
+}): Project {
+  return {
+    id:             p.id,
+    title:          p.title,
+    category:       p.category,
+    location:       p.location,
+    projectSize:    p.projectSize,
+    timeline:       p.timeline,
+    numberOfUnits:  p.numberOfUnits,
+    clientType:     p.clientType,
+    description:    p.description,
+    featuredImage:  p.featuredImage,
+    scopeOfWork:    Array.isArray(p.scopeOfWork)    ? (p.scopeOfWork as string[])      : [],
+    toolsAndTech:   Array.isArray(p.toolsAndTech)   ? (p.toolsAndTech as string[])     : [],
+    challenge:      p.challenge,
+    solution:       p.solution,
+    results:        Array.isArray(p.results)        ? (p.results as string[])          : [],
+    valueDelivered: Array.isArray(p.valueDelivered) ? (p.valueDelivered as string[])   : [],
+    media:          Array.isArray(p.media)          ? (p.media as MediaItem[])         : [],
+    contentBlocks:  Array.isArray(p.contentBlocks)  ? (p.contentBlocks as ContentBlock[]) : [],
+    status:         (p.status === "draft" || p.status === "published") ? p.status : "published",
+    featured:       p.featured,
+    seoTitle:       p.seoTitle,
+    seoDescription: p.seoDescription,
+    order:          p.order,
+    createdAt:      p.createdAt.toISOString(),
+    updatedAt:      p.updatedAt.toISOString(),
+  };
 }
 
-// POST /api/admin/projects
+// ── GET /api/admin/projects ────────────────────────────────────────────────────
+
+export async function GET() {
+  const deny = await requireAdmin();
+  if (deny) return deny;
+
+  const projects = await prisma.project.findMany({ orderBy: { order: "asc" } });
+  return NextResponse.json(projects.map(toResponse));
+}
+
+// ── POST /api/admin/projects ───────────────────────────────────────────────────
+
 export async function POST(request: NextRequest) {
+  const deny = await requireAdmin();
+  if (deny) return deny;
+
   const body = await request.json();
-  const projects = await getProjects();
-
-  const newProject: Project = {
-    id:
-      body.id ||
-      body.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, ""),
-    title: body.title,
-    category: body.category,
-    description: body.description,
-    scope: body.scope,
-    image: body.image || "",
-    caseStudy: {
-      challenge: body.caseStudy?.challenge || "",
-      solution: body.caseStudy?.solution || "",
-      results: body.caseStudy?.results || [],
-    },
-  };
-
-  const existingIds = new Set(projects.map((p) => p.id));
-  if (existingIds.has(newProject.id)) {
-    newProject.id = `${newProject.id}-${Date.now()}`;
+  const parsed = ProjectSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  projects.push(newProject);
-  await saveProjects(projects);
-  return NextResponse.json(newProject, { status: 201 });
+  const d = parsed.data;
+  const maxOrder = await prisma.project.aggregate({ _max: { order: true } });
+  const nextOrder = (maxOrder._max.order ?? -1) + 1;
+
+  // Generate slug from title, ensure uniqueness with a suffix if needed
+  const base = d.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 190);
+  const existing = await prisma.project.count({ where: { id: { startsWith: base } } });
+  const id = existing > 0 ? `${base}-${existing}` : base;
+
+  const project = await prisma.project.create({
+    data: {
+      id,
+      title:          d.title,
+      category:       d.category,
+      location:       d.location,
+      projectSize:    d.projectSize,
+      timeline:       d.timeline,
+      numberOfUnits:  d.numberOfUnits,
+      clientType:     d.clientType,
+      description:    d.description,
+      featuredImage:  d.featuredImage,
+      scopeOfWork:    JSON.parse(JSON.stringify(d.scopeOfWork)),
+      toolsAndTech:   JSON.parse(JSON.stringify(d.toolsAndTech)),
+      challenge:      d.challenge,
+      solution:       d.solution,
+      results:        JSON.parse(JSON.stringify(d.results)),
+      valueDelivered: JSON.parse(JSON.stringify(d.valueDelivered)),
+      media:          JSON.parse(JSON.stringify(d.media)),
+      contentBlocks:  JSON.parse(JSON.stringify(d.contentBlocks)),
+      status:         d.status,
+      featured:       d.featured,
+      seoTitle:       d.seoTitle,
+      seoDescription: d.seoDescription,
+      order:          nextOrder,
+    },
+  });
+
+  return NextResponse.json(toResponse(project), { status: 201 });
 }

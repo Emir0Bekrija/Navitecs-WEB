@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import Link from "next/link";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Plus, X } from "lucide-react";
 import type { Job } from "@/types/index";
 
 type Props = { jobId?: string };
@@ -21,11 +22,14 @@ export default function JobFormClient({ jobId }: Props) {
   const [error, setError] = useState("");
   const [form, setForm] = useState({
     title: "",
+    summary: "",
     department: "",
     location: "",
     type: "Full-time",
     description: "",
     active: true,
+    isGeneral: false,
+    requirements: [""] as string[],
   });
 
   useEffect(() => {
@@ -35,15 +39,37 @@ export default function JobFormClient({ jobId }: Props) {
       .then((job: Job) => {
         setForm({
           title: job.title,
+          summary: job.summary,
           department: job.department,
           location: job.location,
           type: job.type,
           description: job.description,
           active: job.active,
+          isGeneral: job.isGeneral ?? false,
+          requirements: job.requirements && job.requirements.length > 0 ? job.requirements : [""],
         });
         setLoading(false);
       });
   }, [jobId]);
+
+  function setRequirement(idx: number, value: string) {
+    setForm((prev) => {
+      const requirements = [...prev.requirements];
+      requirements[idx] = value;
+      return { ...prev, requirements };
+    });
+  }
+
+  function addRequirement() {
+    setForm((prev) => ({ ...prev, requirements: [...prev.requirements, ""] }));
+  }
+
+  function removeRequirement(idx: number) {
+    setForm((prev) => ({
+      ...prev,
+      requirements: prev.requirements.filter((_, i) => i !== idx),
+    }));
+  }
 
   function handleChange(
     e: React.ChangeEvent<
@@ -66,14 +92,20 @@ export default function JobFormClient({ jobId }: Props) {
     const url = isEdit ? `/api/admin/jobs/${jobId}` : "/api/admin/jobs";
     const method = isEdit ? "PUT" : "POST";
 
+    const payload = {
+      ...form,
+      requirements: form.requirements.filter((r) => r.trim()),
+    };
+
     const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(payload),
     });
 
     if (res.ok) {
-      router.push("/admin/jobs");
+      toast.success(isEdit ? "Job saved" : "Job created");
+      router.push("/navitecs-control-admin/jobs");
     } else {
       const data = await res.json();
       setError(data.error || "Save failed");
@@ -93,7 +125,7 @@ export default function JobFormClient({ jobId }: Props) {
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center gap-4">
         <Link
-          href="/admin/jobs"
+          href="/navitecs-control-admin/jobs"
           className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
         >
           <ArrowLeft size={16} />
@@ -129,6 +161,27 @@ export default function JobFormClient({ jobId }: Props) {
             placeholder="e.g. Senior BIM Consultant"
             className={inputClass}
           />
+        </div>
+
+        <div>
+          <label htmlFor="summary" className={labelClass}>
+            Short Summary *{" "}
+            <span className="text-gray-600 font-normal">(shown on careers list, max 500 chars)</span>
+          </label>
+          <textarea
+            id="summary"
+            name="summary"
+            required
+            value={form.summary}
+            onChange={handleChange}
+            rows={2}
+            maxLength={500}
+            placeholder="One or two sentences describing the role at a glance…"
+            className={`${inputClass} resize-none`}
+          />
+          <p className="text-xs text-gray-600 mt-1 text-right">
+            {form.summary.length}/500
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -183,7 +236,8 @@ export default function JobFormClient({ jobId }: Props) {
 
         <div>
           <label htmlFor="description" className={labelClass}>
-            Job Description *
+            Full Job Description *{" "}
+            <span className="text-gray-600 font-normal">(shown on apply page)</span>
           </label>
           <textarea
             id="description"
@@ -191,10 +245,46 @@ export default function JobFormClient({ jobId }: Props) {
             required
             value={form.description}
             onChange={handleChange}
-            rows={5}
-            placeholder="Describe the role, responsibilities, and requirements..."
+            rows={8}
+            placeholder="Full details: responsibilities, requirements, what we offer…"
             className={`${inputClass} resize-none`}
           />
+        </div>
+
+        <div>
+          <label className={labelClass}>
+            Skills & Requirements
+            <span className="ml-2 text-gray-600 font-normal">(optional — shown as selectable options on the apply form)</span>
+          </label>
+          <div className="space-y-2">
+            {form.requirements.map((req, idx) => (
+              <div key={idx} className="flex gap-2">
+                <input
+                  value={req}
+                  onChange={(e) => setRequirement(idx, e.target.value)}
+                  placeholder={`e.g. Revit, Project Management, Python…`}
+                  className={`${inputClass} flex-1`}
+                />
+                {form.requirements.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeRequirement(idx)}
+                    className="p-3 rounded-lg bg-white/5 hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors shrink-0"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addRequirement}
+              className="flex items-center gap-2 text-sm text-[#00AEEF] hover:text-[#00FF9C] transition-colors mt-2"
+            >
+              <Plus size={14} />
+              Add requirement
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
@@ -208,6 +298,23 @@ export default function JobFormClient({ jobId }: Props) {
           />
           <label htmlFor="active" className="text-sm text-gray-300">
             Publish this job (visible to applicants)
+          </label>
+        </div>
+
+        <div className="flex items-start gap-3 px-4 py-3 bg-amber-500/5 border border-amber-500/20 rounded-lg">
+          <input
+            type="checkbox"
+            id="isGeneral"
+            name="isGeneral"
+            checked={form.isGeneral}
+            onChange={handleChange}
+            className="w-4 h-4 accent-amber-400 mt-0.5 shrink-0"
+          />
+          <label htmlFor="isGeneral" className="text-sm text-gray-300 cursor-pointer">
+            <span className="font-medium text-amber-300">General Application</span>
+            <span className="block text-xs text-gray-500 mt-0.5">
+              Hidden from the open positions list. Linked to the &ldquo;Don&apos;t See Your Role?&rdquo; button on the careers page.
+            </span>
           </label>
         </div>
 
@@ -231,7 +338,7 @@ export default function JobFormClient({ jobId }: Props) {
             {saving ? "Saving..." : isEdit ? "Save Changes" : "Create Job"}
           </button>
           <Link
-            href="/admin/jobs"
+            href="/navitecs-control-admin/jobs"
             className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-sm font-medium hover:bg-white/10 transition-colors"
           >
             Cancel

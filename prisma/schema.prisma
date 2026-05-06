@@ -1,0 +1,329 @@
+// Prisma schema for NAVITECS Next.js
+// MySQL datasource + Prisma Client
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ─── Admin ────────────────────────────────────────────────────────────────────
+
+model AdminUser {
+  id        Int            @id @default(autoincrement())
+  username  String         @unique @db.VarChar(100)
+  password  String         @db.VarChar(255) // bcrypt hash
+  role      String         @default("admin") @db.VarChar(20) // "admin" | "superadmin"
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  sessions  AdminSession[]
+  auditLogs AuditLog[]
+
+  @@map("admin_users")
+}
+
+model AdminSession {
+  id                String    @id @default(cuid()) @db.VarChar(36)
+  userId            Int
+  tokenHash         String    @unique @db.VarChar(64)  // SHA-256 hex of the raw cookie token — raw token is never stored
+  ip                String?   @db.VarChar(45)
+  userAgent         String?   @db.VarChar(500)
+  expiresAt         DateTime  // sliding idle timeout: extended on activity, max = absoluteExpiresAt
+  absoluteExpiresAt DateTime  // hard cap set at login (login time + 24 h), never extended
+  createdAt         DateTime  @default(now())
+  user              AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("admin_sessions")
+}
+
+model LoginAttempt {
+  id        Int      @id @default(autoincrement())
+  ip        String   @db.VarChar(45)
+  username  String?  @db.VarChar(100)
+  success   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([ip, createdAt])
+  @@map("login_attempts")
+}
+
+model AuditLog {
+  id        Int        @id @default(autoincrement())
+  action    String     @db.VarChar(100)
+  ip        String?    @db.VarChar(45)
+  username  String?    @db.VarChar(100)
+  userId    Int?
+  user      AdminUser? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  metadata  Json?
+  createdAt DateTime   @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ─── Projects / Case Studies ──────────────────────────────────────────────────
+
+model Project {
+  id              String    @id @db.VarChar(200) // kebab-case slug
+  title           String    @db.VarChar(255)
+  category        String    @db.VarChar(100)
+  location        String?   @db.VarChar(255)
+  projectSize     String?   @db.VarChar(100)  // e.g. "12,000 m²"
+  timeline        String?   @db.VarChar(100)  // e.g. "2023–2024" or "8 months"
+  numberOfUnits   String?   @db.VarChar(100)  // e.g. "120 apartments"
+  clientType      String?   @db.VarChar(100)  // e.g. "Developer"
+  description     String    @db.Text
+  featuredImage   String?   @db.VarChar(500)
+  scopeOfWork     Json?     // string[]
+  toolsAndTech    Json?     // string[]
+  challenge       String?   @db.Text
+  solution        String?   @db.Text
+  results         Json?     // string[]
+  valueDelivered  Json?     // string[]
+  media           Json?     // { url, caption?, type? }[]
+  contentBlocks   Json?     // ContentBlock[]
+  status          String    @default("published") @db.VarChar(20) // "draft" | "published"
+  featured        Boolean   @default(false)
+  seoTitle        String?   @db.VarChar(255)
+  seoDescription  String?   @db.Text
+  order           Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("projects")
+}
+
+// ─── Jobs ─────────────────────────────────────────────────────────────────────
+
+model Job {
+  id           String        @id @default(cuid()) @db.VarChar(36)
+  title        String        @db.VarChar(255)
+  summary      String        @db.VarChar(500) @default("") // short text for careers list
+  department   String        @db.VarChar(100)
+  location     String        @db.VarChar(100)
+  type         String        @db.VarChar(50) // full-time, part-time, contract, etc.
+  description  String        @db.Text // full detailed description shown on apply page
+  requirements Json?         // string[] — skill/proficiency options shown on apply form
+  active       Boolean       @default(true)
+  isGeneral    Boolean       @default(false) // true = general application, hidden from careers job list
+  order        Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
+
+  @@map("jobs")
+}
+
+// ─── Applications ─────────────────────────────────────────────────────────────
+
+model Application {
+  id          String     @id @default(cuid()) @db.VarChar(36)
+  firstName   String     @db.VarChar(100)
+  lastName    String     @db.VarChar(100)
+  email       String     @db.VarChar(255)
+  phone       String     @db.VarChar(50)
+  role        String     @db.VarChar(255)
+  linkedin    String?    @db.VarChar(500)
+  portfolio   String?    @db.VarChar(500)
+  message     String?    @db.Text
+  cvFileName         String?    @db.VarChar(255) // original filename (display only)
+  cvPath             String?    @db.VarChar(500) // filesystem path (relative to uploads/) — null once CV is deleted
+  cvDeletable        Boolean    @default(false)  // admin-marked: CV file is safe to delete from disk
+  currentlyEmployed  Boolean?
+  noticePeriod       String?    @db.VarChar(50)  // e.g. "immediate", "2-weeks", "1-month", "3-months"
+  yearsOfExperience  String?    @db.VarChar(20)  // e.g. "0-1", "1-3", "3-5", "5-10", "10+"
+  location           String?    @db.VarChar(255)
+  bimSoftware        String?    @db.VarChar(500) // comma-separated list
+  consentDataSharing Boolean    @default(false)  // User consented to processing their personal data
+  consentFutureUse   Boolean    @default(false)  // User agreed to retention for future opportunities
+  submittedAt        DateTime   @default(now())
+
+  // Relations
+  jobId       String?    @db.VarChar(36)
+  job         Job?       @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  applicantId String?    @db.VarChar(36)
+  applicant   Applicant? @relation(fields: [applicantId], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([jobId])
+  @@index([applicantId])
+  @@map("applications")
+}
+
+// ─── Applicant Tracking ───────────────────────────────────────────────────────
+
+/// Deduplicated person record — one row per unique email.
+/// Links all Applications from the same person across multiple job postings.
+model Applicant {
+  id           String        @id @default(cuid()) @db.VarChar(36)
+  email        String        @unique @db.VarChar(255)
+  firstName    String        @db.VarChar(100)
+  lastName     String        @db.VarChar(100)
+  phone        String?       @db.VarChar(50)
+  // Internal scoring
+  score        Int?          // 1–10
+  comments     String?       @db.Text // internal notes
+  fitsRoles    String?       @db.Text // roles/skills they are good for
+  doesNotFit   String?       @db.Text // roles/skills they are not right for
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
+
+  @@map("applicants")
+}
+
+// ─── Contact Submissions ──────────────────────────────────────────────────────
+
+model Contact {
+  id               String          @id @default(cuid()) @db.VarChar(36)
+  name             String          @db.VarChar(255)
+  email            String          @db.VarChar(255)
+  company          String?         @db.VarChar(255)
+  phone            String?         @db.VarChar(50)
+  projectType      String?         @db.VarChar(100)
+  service          String?         @db.VarChar(100)
+  projectServices       String?         @db.VarChar(500) // comma-separated selected services
+  message               String          @db.Text
+  consentDataProcessing Boolean         @default(false)  // User consented to processing their personal data
+  submittedAt           DateTime        @default(now())
+
+  // Relations
+  companyContactId String?         @db.VarChar(36)
+  companyContact   CompanyContact? @relation(fields: [companyContactId], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([companyContactId])
+  @@map("contacts")
+}
+
+// ─── Company Contact Tracking ─────────────────────────────────────────────────
+
+/// Deduplicated company/person record — one row per unique email.
+/// Links all Contact submissions from the same person/company.
+model CompanyContact {
+  id        String    @id @default(cuid()) @db.VarChar(36)
+  email     String    @unique @db.VarChar(255)
+  name      String    @db.VarChar(255)
+  company   String?   @db.VarChar(255)
+  phone     String?   @db.VarChar(50)
+  // Internal scoring
+  score     Int?      // 1–10
+  comments  String?   @db.Text
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  contacts  Contact[]
+
+  @@map("company_contacts")
+}
+
+// ─── About Page Featured Section ──────────────────────────────────────────────
+
+model AboutTeamFeature {
+  id        String   @id @default(cuid()) @db.VarChar(36)
+  title     String   @default("Our Team") @db.VarChar(255)
+  text      String   @db.Text
+  imageUrl  String?  @db.VarChar(500)
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("about_team_feature")
+}
+
+// ─── Team Members ─────────────────────────────────────────────────────────────
+
+model TeamMember {
+  id        String   @id @default(cuid()) @db.VarChar(36)
+  name      String   @db.VarChar(255)
+  role      String   @db.VarChar(255)
+  bio       String?  @db.Text
+  imageUrl  String?  @db.VarChar(500)
+  featured  Boolean  @default(false)
+  active    Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("team_members")
+}
+
+// ─── Page View Tracking ───────────────────────────────────────────────────────
+
+model PageView {
+  id        Int      @id @default(autoincrement())
+  path      String   @db.VarChar(255)
+  country   String?  @db.VarChar(2)   // ISO 2-letter country code
+  referrer  String?  @db.VarChar(500)
+  duration  Int?     // seconds on page
+  createdAt DateTime @default(now())
+
+  @@index([path, createdAt])
+  @@index([country, createdAt])
+  @@index([createdAt])
+  @@map("page_views")
+}
+
+// ─── Popup Click Tracking ─────────────────────────────────────────────────────
+
+model PopupClick {
+  id        Int      @id @default(autoincrement())
+  linkUrl   String   @db.VarChar(500)
+  linkTitle String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("popup_clicks")
+}
+
+// ─── Popup Templates ──────────────────────────────────────────────────────────
+
+model PopupTemplate {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  badge       String   @default("INSIGHT") @db.VarChar(50)
+  category    String   @default("") @db.VarChar(100)
+  title       String   @default("") @db.VarChar(255)
+  description String   @default("") @db.Text
+  buttonText  String   @default("") @db.VarChar(100)
+  linkUrl     String   @default("") @db.VarChar(500)
+  linkType    String   @default("external") @db.VarChar(20)
+  openInNewTab Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("popup_templates")
+}
+
+// ─── Site Settings (singleton) ───────────────────────────────────────────────
+
+model SiteSettings {
+  id                    Int      @id @default(1)
+  projectsComingSoon    Boolean  @default(false)
+  updatedAt             DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+// ─── Popup Config (singleton) ─────────────────────────────────────────────────
+
+model PopupConfig {
+  id            Int       @id @default(1)
+  enabled       Boolean   @default(false)
+  badge         String    @default("INSIGHT") @db.VarChar(50)
+  category      String    @default("") @db.VarChar(100)
+  title         String    @default("New BIM Coordination Insight") @db.VarChar(255)
+  description   String    @default("See how coordinated Revit models help reduce clashes, improve documentation accuracy, and streamline collaboration across architectural, structural, and MEP teams.") @db.Text
+  buttonText    String    @default("Read the article") @db.VarChar(100)
+  linkUrl       String    @default("") @db.VarChar(500)
+  linkType      String    @default("external") @db.VarChar(20) // "internal" | "external"
+  openInNewTab  Boolean   @default(true)
+  updatedAt     DateTime  @updatedAt
+
+  @@map("popup_config")
+}
+

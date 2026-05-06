@@ -13,7 +13,7 @@ export default function Navigation() {
   const pathname = usePathname();
 
   const navLinks = [
-    { name: "Home", path: "/home" },
+    { name: "Home", path: "/" },
     { name: "About", path: "/about" },
     { name: "Services", path: "/services" },
     { name: "Projects", path: "/projects" },
@@ -23,22 +23,23 @@ export default function Navigation() {
 
   const isActive = (path: string) => {
     if (path === "/") {
-      return pathname === "/home";
+      return pathname === "/";
     }
     return pathname.startsWith(path);
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10">
+    <nav aria-label="Main navigation" className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <Link href="/" className="flex items-center space-x-2 group">
+          <Link href="/" aria-label="NAVITECS Home" className="flex items-center space-x-2 group">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] blur-lg opacity-30 group-hover:opacity-50 transition-opacity" />
               <Image
                 src={logo}
                 alt="NAVITECS Logo"
                 className="relative z-10 h-10 w-50 object-contain"
+                loading="eager"
                 priority
               />
             </div>
@@ -49,7 +50,7 @@ export default function Navigation() {
               <Link
                 key={link.path}
                 href={link.path}
-                className="relative px-2 lg:px-4 py-2 text-sm lg:text-lg font-medium transition-colors group"
+                className="relative px-2 lg:px-4 py-2 text-sm lg:text-lg font-medium transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00AEEF] focus-visible:rounded-lg"
               >
                 <span
                   className={`relative z-10 ${
@@ -75,7 +76,7 @@ export default function Navigation() {
 
           <div className="hidden md:block">
             <Link
-              href="/contact"
+              href="/contact#conversation"
               className="relative px-4 lg:px-6 py-2.5 text-sm lg:text-base bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-lg overflow-hidden group"
             >
               <span className="relative z-10">Get in Touch</span>
@@ -119,7 +120,7 @@ export default function Navigation() {
               ))}
 
               <Link
-                href="/contact"
+                href="/contact#conversation"
                 onClick={() => setMobileMenuOpen(false)}
                 className="block w-full px-4 py-3 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-lg text-center"
               >

@@ -1,4 +1,5 @@
 "use client";
+import { usePageView } from "@/hooks/usePageView";
 
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -14,12 +15,13 @@ import { ImageWithFallback } from "../figma/ImageWithFallback";
 import ToolsSection from "../ToolsSection";
 
 export default function HomeClient() {
+  usePageView();
   const services = [
     {
       icon: Layers,
       title: "BIM Consulting",
       description:
-        "Coordination, clash detection, and workflow optimization across all disciplines",
+        "Coordination, clash detection and workflow optimization across all disciplines",
     },
     {
       icon: Building2,
@@ -37,22 +39,21 @@ export default function HomeClient() {
       icon: GitMerge,
       title: "MEP Design",
       description:
-        "Integrated mechanical, electrical, and plumbing system planning",
+        "Integrated mechanical, electrical and plumbing system planning",
     },
   ];
 
   const industries = [
-    "Residential Construction",
-    "Commercial Buildings",
-    "Infrastructure Projects",
-    "Real Estate Development",
+    "Architectural Electrical and Construction",
+    "Infrastructure and Public Works",
+    "Industrial and Process Plants",
+    "Specialized Sectors and Services",
   ];
 
   const stats = [
-    { value: "500+", label: "Projects Delivered" },
-    { value: "15+", label: "Years Experience" },
-    { value: "100%", label: "BIM Coordination" },
-    { value: "50+", label: "Active Clients" },
+    { value: "300+", label: "Projects Delivered" },
+    { value: "10+", label: "Years Experience" },
+    { value: "30+", label: "Active Clients" },
   ];
 
   const whyBIM = [
@@ -106,7 +107,8 @@ export default function HomeClient() {
               <p className="text-xl text-gray-400 mb-8 max-w-xl">
                 NAVITECS delivers advanced BIM consulting and engineering
                 solutions, ensuring seamless coordination across all stages of
-                building development.
+                building development. Based in Sarajevo, Bosnia and
+                Herzegovina, we serve clients across Europe and internationally.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 mb-12">
@@ -222,9 +224,9 @@ export default function HomeClient() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Core{" "}
+              What are BIM Core{" "}
               <span className="bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] bg-clip-text text-transparent">
-                Services
+                Services?
               </span>
             </h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
@@ -321,7 +323,11 @@ export default function HomeClient() {
             </h2>
             <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
               Let&apos;s discuss how our BIM and engineering expertise can bring
-              precision and efficiency to your building development.
+              precision and efficiency to your building development.{" "}
+              <Link href="/about" className="text-[#00AEEF] hover:underline">
+                Learn more about us
+              </Link>
+              .
             </p>
             <Link
               href="/contact"

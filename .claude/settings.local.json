@@ -1,7 +1,41 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(rm:*)",
+      "Bash(npm audit:*)",
+      "Bash(npx prisma:*)",
+      "Bash(ls -la /c/EMIR/Navitecs/navitecs.next.js/src/app/api/admin/projects/[id]/)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(node -e \"const geoip = require\\('geoip-lite'\\); console.log\\(geoip.lookup\\('8.8.8.8'\\)\\)\")",
+      "Bash(npx next:*)",
+      "Bash(node -e ':*)",
+      "Bash(xargs npm:*)",
+      "Bash(node -e \" let data = ''; process.stdin.on\\('data', d => data += d\\); process.stdin.on\\('end', \\(\\) => { // npm show with multiple args returns a different format console.log\\(data.slice\\(0, 200\\)\\); }\\); \")",
+      "Bash(npm show:*)",
+      "Bash(npx --no-install next lint --dir src)",
+      "Bash(npx --no-install next lint src)",
+      "Bash(node -e \"require\\('xlsx'\\); console.log\\('xlsx ok'\\)\")",
+      "Bash(npm uninstall:*)",
+      "Bash(npx web-push:*)",
+      "Bash(node -e \"const deps = require\\('./package.json'\\); console.log\\(JSON.stringify\\({...deps.dependencies, ...deps.devDependencies}, null, 2\\)\\)\")",
+      "Bash(node -e \"require\\('fflate'\\); console.log\\('ok'\\)\")",
+      "Bash(node -e \"const { zipSync } = require\\('fflate'\\); const z = zipSync\\({ 'hello.txt': Buffer.from\\('hello'\\) }\\); console.log\\('zip size:', z.length\\)\")",
+      "Bash(xargs grep:*)",
+      "Bash(find:*)",
+      "Bash(wc:*)",
+      "Bash(xargs head:*)",
+      "Bash(head -5 /c/EMIR/Navitecs/navitecs.next.js/src/app/*/page.tsx)",
+      "Bash(head -1 /c/EMIR/Navitecs/navitecs.next.js/src/components/pages/*.tsx)",
+      "Bash(grep:*)",
+      "Bash(tasklist)",
+      "Bash(findstr /i \"next\")",
+      "Bash(chmod +x /tmp/check_meta.sh)",
+      "Bash(/tmp/check_meta.sh)",
+      "Bash(ls -la /c/EMIR/Navitecs/navitecs.next.js/src/app/*.tsx)",
+      "Bash(curl:*)",
+      "Bash(git worktree:*)"
     ]
   }
 }

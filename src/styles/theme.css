@@ -249,4 +249,24 @@
     animation: none;
     filter: none;
   }
+
+  /* Promo popup: slow liquid gradient animation */
+  @keyframes liquid-gradient {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .animate-liquid-gradient {
+    background-size: 300% 300%;
+    animation: liquid-gradient 10s ease infinite;
+  }
+
+  /* Promo popup: subtle BIM/Revit technical grid overlay */
+  .bim-grid-overlay {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
 }

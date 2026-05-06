@@ -1,40 +1,85 @@
 "use client";
+import { usePageView } from "@/hooks/usePageView";
 
 import { motion } from "framer-motion";
-import { Target, Eye, Layers, Users, Award, CheckCircle } from "lucide-react";
+import {
+  Target,
+  Eye,
+  Layers,
+  Users,
+  Award,
+  CheckCircle,
+  ArrowRight,
+} from "lucide-react";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
+import Link from "next/link";
+import type { Variants } from "framer-motion";
+import type { AboutTeamFeature } from "@/types/index";
 
-export default function AboutClient() {
+type Props = { aboutFeature?: AboutTeamFeature | null };
+
+export default function AboutClient({ aboutFeature }: Props) {
+  usePageView();
   const milestones = [
     {
-      year: "2009",
-      title: "Company Founded",
-      description: "NAVITECS established in Sarajevo",
+      year: "2019",
+      title: "The Beginning",
+      description:
+        "Initial ideas and early project work took shape, laying the foundation for the company.",
     },
     {
-      year: "2012",
-      title: "BIM Integration",
-      description: "Adopted advanced BIM workflows and technologies",
-    },
-    {
-      year: "2015",
-      title: "Regional Expansion",
-      description: "Extended services across Southeast Europe",
-    },
-    {
-      year: "2018",
-      title: "500+ Projects",
-      description: "Reached major milestone in project delivery",
+      year: "2020",
+      title: "First Projects Delivered",
+      description:
+        "Completed early projects, gained hands-on experience, and refined the approach.",
     },
     {
       year: "2021",
-      title: "MEP Specialization",
-      description: "Expanded expertise in integrated MEP systems",
+      title: "Growth & Development",
+      description:
+        "Expanded capabilities and continued building a portfolio across multiple projects.",
+    },
+    {
+      year: "2022",
+      title: "Strengthening Expertise",
+      description:
+        "Deepened industry knowledge and established consistent workflows and client collaboration practices.",
+    },
+    {
+      year: "2025",
+      title: "Official Company Launch",
+      description:
+        "Founded under the current name, bringing years of experience together into a formal business.",
     },
     {
       year: "2026",
-      title: "Industry Leader",
-      description: "Recognized as leading BIM consultancy in the region",
+      title: "Looking Ahead",
+      description:
+        "Focused on growth, innovation, and delivering high-quality solutions to a broader client base.",
+    },
+    {
+      year: "2027",
+      title: "Scaling Operations",
+      description:
+        "Planning to expand the team and take on larger, more complex projects.",
+    },
+    {
+      year: "2028",
+      title: "Market Expansion",
+      description:
+        "Aiming to enter new markets and build long-term partnerships.",
+    },
+    {
+      year: "2029",
+      title: "Innovation & New Services",
+      description:
+        "Exploring new technologies and expanding service offerings.",
+    },
+    {
+      year: "2030",
+      title: "Established Industry Presence",
+      description:
+        "Working toward becoming a recognized and trusted name in the field.",
     },
   ];
 
@@ -87,6 +132,33 @@ export default function AboutClient() {
     },
   ];
 
+  const cardVariants: Variants = {
+    hidden: { opacity: 0, y: 26, scale: 0.96 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 420,
+        damping: 22,
+        mass: 0.7,
+      },
+    },
+    hover: {
+      y: -16,
+      scale: 1.02,
+      rotateX: 1,
+      transition: {
+        type: "spring",
+        stiffness: 420,
+        damping: 20,
+        mass: 0.45,
+        velocity: 2,
+      },
+    },
+  };
+
   return (
     <div className="overflow-x-hidden">
       <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden">
@@ -118,7 +190,7 @@ export default function AboutClient() {
       </section>
 
       <section>
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="pb-20 max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
@@ -167,16 +239,18 @@ export default function AboutClient() {
         </div>
       </section>
 
-      <section className="py-24 bg-white/5">
+      <section className="py-24 bg-black/20">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div className="relative grid grid-cols-1 md:grid-cols-2 gap-12 bg-black/10">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="relative rounded-2xl border border-white/10 p-8 shadow-lg overflow-hidden bg-black/20 hover:bg-black/85 duration-300 ease-in-out"
+              variants={cardVariants}
+              initial="hidden"
+              whileInView="visible"
+              whileHover="hover"
+              viewport={{ once: true, amount: 0.3 }}
+              className="relative rounded-2xl border border-white/50 p-8 shadow-lg overflow-hidden bg-black/20 hover:bg-black/90"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#00AEEF]/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-br from-[#00AEEF]/20 to-[#00FF9C]/20" />
               <div className="relative z-10">
                 <div className="inline-block p-4 bg-gradient-to-br from-[#00AEEF]/20 to-[#00FF9C]/20 rounded-xl mb-6">
                   <Target className="text-[#00AEEF]" size={32} />
@@ -192,15 +266,16 @@ export default function AboutClient() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="relative rounded-2xl border border-white/10 p-8 shadow-lg overflow-hidden bg-black/20 hover:bg-black/85 duration-300 ease-in-out"
+              variants={cardVariants}
+              initial="hidden"
+              whileInView="visible"
+              whileHover="hover"
+              viewport={{ once: true, amount: 0.3 }}
+              className="relative rounded-2xl border border-white/50 p-8 shadow-lg overflow-hidden bg-black/20 hover:bg-black/90"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#00FF9C]/20 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-br from-[#00FF9C]/20 to-[#00AEEF]/20" />
               <div className="relative z-10">
-                <div className="inline-block p-4 bg-gradient-to-br from-[#00AEEF]/20 to-[#00FF9C]/20 rounded-xl mb-6">
+                <div className="inline-block p-4 bg-linear-to-br from-[#00AEEF]/20 to-[#00FF9C]/20 rounded-xl mb-6">
                   <Eye className="text-[#00FF9C]" size={32} />
                 </div>
                 <h3 className="text-3xl font-bold mb-4">Our Approach</h3>
@@ -215,6 +290,64 @@ export default function AboutClient() {
           </div>
         </div>
       </section>
+
+      {/* Team preview */}
+      {aboutFeature && (
+        <section className="py-24 bg-white/5">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <motion.div
+                initial={{ opacity: 0, x: 100 }}
+                whileInView={{ opacity: 1, x: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+              >
+                {aboutFeature.imageUrl && (
+                  <ImageWithFallback
+                    src={aboutFeature.imageUrl}
+                    alt={aboutFeature.title}
+                    className="w-full h-auto object-cover"
+                  />
+                )}
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+              >
+                <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                  {aboutFeature.title.includes(" ") ? (
+                    <>
+                      {aboutFeature.title.split(" ").slice(0, -1).join(" ")}{" "}
+                      <span className="bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] bg-clip-text text-transparent">
+                        {aboutFeature.title.split(" ").slice(-1)[0]}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] bg-clip-text text-transparent">
+                      {aboutFeature.title}
+                    </span>
+                  )}
+                </h2>
+                <p className="text-gray-400 text-lg leading-relaxed whitespace-pre-line">
+                  {aboutFeature.text}
+                </p>
+                <div className="mt-8">
+                  <Link
+                    href="/team"
+                    className="inline-flex items-center text-[#00AEEF] hover:text-[#00FF9C] transition-colors font-medium"
+                  >
+                    Meet the full team
+                    <ArrowRight className="ml-2" size={20} />
+                  </Link>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="py-24">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">

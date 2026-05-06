@@ -1,11 +1,25 @@
 "use client";
+import { usePageView } from "@/hooks/usePageView";
 
 import { motion } from "motion/react";
 import { useState } from "react";
-import { Mail, Phone, MapPin, Send, CheckCircle } from "lucide-react";
+import { Mail, MapPin, Send, CheckCircle } from "lucide-react";
+
+const PROJECT_SERVICES = [
+  "Structural Analysis",
+  "Thermal Analysis",
+  "Seismic Analysis",
+  "Retrofitting",
+  "Custom Solutions",
+];
 
 export default function Contact() {
+  usePageView();
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [validationBanner, setValidationBanner] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -14,18 +28,120 @@ export default function Contact() {
     projectType: "",
     message: "",
   });
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [consent, setConsent] = useState(false);
+
+  function toggleService(s: string) {
+    setSelectedServices((prev) => {
+      const next = prev.includes(s)
+        ? prev.filter((x) => x !== s)
+        : [...prev, s];
+      if (next.length > 0) setErrors((e) => ({ ...e, services: "" }));
+      return next;
+    });
+  }
+
+  function validateField(name: string, value: string): string {
+    switch (name) {
+      case "name":
+        return value.trim() ? "" : "Name is required.";
+      case "email":
+        if (!value.trim()) return "Email is required.";
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+          ? ""
+          : "Please enter a valid email address.";
+      case "company":
+        return value.trim() ? "" : "Company is required.";
+      case "phone":
+        if (!value.trim()) return "Phone number is required.";
+        return /^\+?[\d\s\-(). ]{7,20}$/.test(value.trim())
+          ? ""
+          : "Please enter a valid phone number.";
+      case "projectType":
+        return value ? "" : "Please select a project type.";
+      case "message":
+        return value.trim() ? "" : "Project details are required.";
+      default:
+        return "";
+    }
+  }
+
+  function handleBlur(
+    e: React.FocusEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) {
+    const { name, value } = e.target;
+    const msg = validateField(name, value);
+    setErrors((prev) => ({ ...prev, [name]: msg }));
+  }
 
   const cardClass =
     "rounded-2xl border border-white/30 bg-black/70 p-6 transition-all duration-300 hover:bg-black hover:border-[#00AEEF]";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch("/api/contact", {
+    const requiredFields = [
+      "name",
+      "email",
+      "company",
+      "phone",
+      "projectType",
+      "message",
+    ] as const;
+    const newErrors: Record<string, string> = {};
+    for (const field of requiredFields) {
+      const msg = validateField(field, formData[field]);
+      if (msg) newErrors[field] = msg;
+    }
+    if (selectedServices.length === 0) {
+      newErrors.services = "Please select at least one service.";
+    }
+    if (!consent) {
+      newErrors.consent =
+        "You must consent to data processing before submitting.";
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setValidationBanner(true);
+      document
+        .getElementById("conversation")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    setValidationBanner(false);
+    setSubmitError(null);
+    setSubmitting(true);
+
+    const res = await fetch("/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
+      body: JSON.stringify({
+        ...formData,
+        projectServices: selectedServices.join(","),
+        consentDataProcessing: consent,
+      }),
     });
+
+    setSubmitting(false);
+
+    if (!res.ok) {
+      const json = (await res.json().catch(() => ({}))) as { error?: string };
+      setSubmitError(
+        typeof json.error === "string"
+          ? json.error
+          : "Something went wrong. Please try again.",
+      );
+      document
+        .getElementById("conversation")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
     setFormSubmitted(true);
+    document
+      .getElementById("conversation")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
     setTimeout(() => {
       setFormSubmitted(false);
       setFormData({
@@ -36,6 +152,8 @@ export default function Contact() {
         projectType: "",
         message: "",
       });
+      setSelectedServices([]);
+      setConsent(false);
     }, 3000);
   };
 
@@ -44,10 +162,10 @@ export default function Contact() {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >,
   ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (errors[name])
+      setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
   };
 
   const contactInfo = [
@@ -61,7 +179,8 @@ export default function Contact() {
       icon: MapPin,
       title: "Office",
       content: "Sarajevo, Bosnia and Herzegovina",
-      link: "#",
+      link: "https://maps.app.goo.gl/cTrHXtMa9y67cHtH8",
+      external: true,
     },
   ];
 
@@ -100,6 +219,8 @@ export default function Contact() {
               <motion.a
                 key={info.title}
                 href={info.link}
+                target={info.external ? "_blank" : undefined}
+                rel={info.external ? "noopener noreferrer" : undefined}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
@@ -116,7 +237,30 @@ export default function Contact() {
         </div>
       </section>
 
-      <section className="relative bg-white/5 py-24">
+      <section className="py-24 bg-black/70 hover:bg-black">
+        <div className="max-w-4xl mx-auto px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className={`${cardClass} text-center`}
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              Ready to Start Your{" "}
+              <span className="bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] bg-clip-text text-transparent">
+                Project?
+              </span>
+            </h2>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Whether you need BIM coordination, structural engineering, MEP
+              design, or complete project development services, our team is
+              ready to help. Contact us today to discuss your requirements.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      <section id="conversation" className="relative bg-white/5 py-24">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <motion.div
@@ -144,7 +288,7 @@ export default function Contact() {
                   </p>
                 </motion.div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} noValidate className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label
@@ -160,9 +304,15 @@ export default function Contact() {
                         required
                         value={formData.name}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-black/70 hover:bg-black border border-white/30 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white"
+                        onBlur={handleBlur}
+                        className={`w-full px-4 py-3 bg-black/70 hover:bg-black border rounded-lg focus:outline-none transition-colors text-white ${errors.name ? "border-red-500/70 focus:border-red-500" : "border-white/30 focus:border-[#00AEEF]"}`}
                         placeholder="Your name"
                       />
+                      {errors.name && (
+                        <p className="mt-1.5 text-xs text-red-400">
+                          {errors.name}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label
@@ -178,9 +328,15 @@ export default function Contact() {
                         required
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-black/70 hover:bg-black border border-white/30 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white"
+                        onBlur={handleBlur}
+                        className={`w-full px-4 py-3 bg-black/70 hover:bg-black border rounded-lg focus:outline-none transition-colors text-white ${errors.email ? "border-red-500/70 focus:border-red-500" : "border-white/30 focus:border-[#00AEEF]"}`}
                         placeholder="your@email.com"
                       />
+                      {errors.email && (
+                        <p className="mt-1.5 text-xs text-red-400">
+                          {errors.email}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -190,7 +346,7 @@ export default function Contact() {
                         htmlFor="company"
                         className="block text-sm font-medium mb-2"
                       >
-                        Company
+                        Company *
                       </label>
                       <input
                         type="text"
@@ -198,16 +354,22 @@ export default function Contact() {
                         name="company"
                         value={formData.company}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-black/70 hover:bg-black border border-white/30 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white"
+                        onBlur={handleBlur}
+                        className={`w-full px-4 py-3 bg-black/70 hover:bg-black border rounded-lg focus:outline-none transition-colors text-white ${errors.company ? "border-red-500/70 focus:border-red-500" : "border-white/30 focus:border-[#00AEEF]"}`}
                         placeholder="Company name"
                       />
+                      {errors.company && (
+                        <p className="mt-1.5 text-xs text-red-400">
+                          {errors.company}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label
                         htmlFor="phone"
                         className="block text-sm font-medium mb-2"
                       >
-                        Phone
+                        Phone *
                       </label>
                       <input
                         type="tel"
@@ -215,9 +377,15 @@ export default function Contact() {
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-black/70 hover:bg-black border border-white/30 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white"
+                        onBlur={handleBlur}
+                        className={`w-full px-4 py-3 bg-black/70 hover:bg-black border rounded-lg focus:outline-none transition-colors text-white ${errors.phone ? "border-red-500/70 focus:border-red-500" : "border-white/30 focus:border-[#00AEEF]"}`}
                         placeholder="+387 XX XXX XXX"
                       />
+                      {errors.phone && (
+                        <p className="mt-1.5 text-xs text-red-400">
+                          {errors.phone}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -226,14 +394,15 @@ export default function Contact() {
                       htmlFor="projectType"
                       className="block text-sm font-medium mb-2"
                     >
-                      Project Type
+                      Project Type *
                     </label>
                     <select
                       id="projectType"
                       name="projectType"
                       value={formData.projectType}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-black/70 hover:bg-black border border-white/30 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white"
+                      onBlur={handleBlur}
+                      className={`w-full px-4 py-3 bg-black/70 hover:bg-black border rounded-lg focus:outline-none transition-colors text-white ${errors.projectType ? "border-red-500/70 focus:border-red-500" : "border-white/30 focus:border-[#00AEEF]"}`}
                     >
                       <option value="" className="bg-[#111] text-white">
                         Select project type
@@ -272,6 +441,43 @@ export default function Contact() {
                         Other
                       </option>
                     </select>
+                    {errors.projectType && (
+                      <p className="mt-1.5 text-xs text-red-400">
+                        {errors.projectType}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-3">
+                      Services Required *
+                    </label>
+                    <div
+                      className={`flex flex-wrap gap-2 p-3 rounded-lg border transition-colors ${errors.services ? "border-red-500/50" : "border-transparent"}`}
+                    >
+                      {PROJECT_SERVICES.map((s) => {
+                        const active = selectedServices.includes(s);
+                        return (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => toggleService(s)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
+                              active
+                                ? "bg-[#00AEEF]/15 border-[#00AEEF]/50 text-[#00AEEF]"
+                                : "bg-black/70 border-white/20 text-gray-400 hover:border-white/40 hover:text-white"
+                            }`}
+                          >
+                            {s}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {errors.services && (
+                      <p className="mt-1.5 text-xs text-red-400">
+                        {errors.services}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -287,17 +493,75 @@ export default function Contact() {
                       required
                       value={formData.message}
                       onChange={handleChange}
+                      onBlur={handleBlur}
                       rows={6}
-                      className="w-full px-4 py-3 bg-black/70 hover:bg-black border border-white/30 rounded-lg focus:outline-none focus:border-[#00AEEF] transition-colors text-white resize-none"
+                      className={`w-full px-4 py-3 bg-black/70 hover:bg-black border rounded-lg focus:outline-none transition-colors text-white resize-none ${errors.message ? "border-red-500/70 focus:border-red-500" : "border-white/30 focus:border-[#00AEEF]"}`}
                       placeholder="Tell us about your project requirements..."
                     />
+                    {errors.message && (
+                      <p className="mt-1.5 text-xs text-red-400">
+                        {errors.message}
+                      </p>
+                    )}
                   </div>
+
+                  {/* Legal consent */}
+                  <div className="space-y-1 p-5 bg-black/70 border border-white/20 rounded-xl">
+                    <p className="text-sm font-medium text-gray-200 mb-3">
+                      Legal consent *
+                    </p>
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={consent}
+                        onChange={(e) => {
+                          setConsent(e.target.checked);
+                          if (e.target.checked)
+                            setErrors((prev) => ({ ...prev, consent: "" }));
+                        }}
+                        className="mt-0.5 w-4 h-4 shrink-0 accent-[#00FF9C] cursor-pointer"
+                      />
+                      <span className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors leading-relaxed">
+                        I consent to NAVITECS collecting and processing my
+                        personal data (name, email, company, phone number,
+                        project type, selected services, and project details)
+                        for the purpose of responding to my inquiry, in
+                        accordance with the{" "}
+                        <a
+                          href="/privacy-policy"
+                          className="underline underline-offset-2 hover:text-white transition-colors"
+                        >
+                          Privacy Policy
+                        </a>
+                        . My data will not be retained for longer than 12
+                        months.
+                      </span>
+                    </label>
+                    {errors.consent && (
+                      <p className="ml-7 text-xs text-red-400">
+                        {errors.consent}
+                      </p>
+                    )}
+                  </div>
+
+                  {validationBanner && (
+                    <p className="text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-3">
+                      Please fill in all required fields before submitting.
+                    </p>
+                  )}
+
+                  {submitError && (
+                    <p className="text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-3">
+                      {submitError}
+                    </p>
+                  )}
 
                   <button
                     type="submit"
-                    className="w-full px-6 py-4 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-lg hover:scale-105 transition-transform flex items-center justify-center space-x-2"
+                    disabled={submitting}
+                    className="w-full px-6 py-4 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-lg hover:scale-105 transition-transform flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
-                    <span>Send Message</span>
+                    <span>{submitting ? "Sending..." : "Send Message"}</span>
                     <Send size={20} />
                   </button>
                 </form>
@@ -334,23 +598,19 @@ export default function Contact() {
                       />
                       <p>info@navitecs.ba</p>
                     </div>
-                    <div className="flex items-start space-x-3">
-                      <Phone
-                        className="text-[#00AEEF] flex-shrink-0 mt-1"
-                        size={20}
-                      />
-                      <p>+387 33 XXX XXX</p>
-                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="relative overflow-hidden h-80 rounded-2xl border border-white/30">
                 <iframe
-                  src="https://maps.google.com/maps?q=43.8434,18.3788&z=16&output=embed"
+                  src="https://maps.google.com/maps?q=43.85046,18.36181&z=16&output=embed"
                   width="100%"
                   height="100%"
-                  style={{ border: 0, filter: "invert(90%) hue-rotate(180deg)" }}
+                  style={{
+                    border: 0,
+                    filter: "invert(90%) hue-rotate(180deg)",
+                  }}
                   allowFullScreen
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
@@ -372,7 +632,7 @@ export default function Contact() {
                 <div className={`${cardClass} space-y-3`}>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Monday - Friday</span>
-                    <span className="font-medium">08:00 - 16:00</span>
+                    <span className="font-medium">08:00 - 16:30</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Saturday - Sunday</span>
@@ -382,29 +642,6 @@ export default function Contact() {
               </div>
             </motion.div>
           </div>
-        </div>
-      </section>
-
-      <section className="py-24 bg-black/70 hover:bg-black">
-        <div className="max-w-4xl mx-auto px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className={`${cardClass} text-center`}
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Ready to Start Your{" "}
-              <span className="bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] bg-clip-text text-transparent">
-                Project?
-              </span>
-            </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Whether you need BIM coordination, structural engineering, MEP
-              design, or complete project development services, our team is
-              ready to help. Contact us today to discuss your requirements.
-            </p>
-          </motion.div>
         </div>
       </section>
     </div>

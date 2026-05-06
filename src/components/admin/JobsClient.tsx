@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import Link from "next/link";
 import {
   Plus,
@@ -15,11 +16,14 @@ import {
   ChevronDown,
 } from "lucide-react";
 import type { Job } from "@/types/index";
+import DeleteModal from "./DeleteModal";
+
+type PendingDelete = { id: string; title: string };
 
 export default function JobsClient() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
 
   async function loadJobs() {
     const res = await fetch("/api/admin/jobs");
@@ -30,19 +34,18 @@ export default function JobsClient() {
   useEffect(() => { loadJobs(); }, []);
 
   async function toggleActive(job: Job) {
-    await fetch(`/api/admin/jobs/${job.id}`, {
+    const res = await fetch(`/api/admin/jobs/${job.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ active: !job.active }),
     });
+    if (res.ok) toast.success(job.active ? "Job deactivated" : "Job activated");
     loadJobs();
   }
 
-  async function deleteJob(id: string) {
-    if (!confirm("Delete this job posting? This cannot be undone.")) return;
-    setDeletingId(id);
-    await fetch(`/api/admin/jobs/${id}`, { method: "DELETE" });
-    setDeletingId(null);
+  async function confirmDelete(id: string, title: string) {
+    const res = await fetch(`/api/admin/jobs/${id}`, { method: "DELETE" });
+    if (res.ok) toast.success(`"${title}" deleted`);
     loadJobs();
   }
 
@@ -51,7 +54,7 @@ export default function JobsClient() {
     const swapIndex = direction === "up" ? index - 1 : index + 1;
     if (swapIndex < 0 || swapIndex >= newJobs.length) return;
     [newJobs[index], newJobs[swapIndex]] = [newJobs[swapIndex], newJobs[index]];
-    setJobs(newJobs); // optimistic update
+    setJobs(newJobs);
     await fetch("/api/admin/jobs/reorder", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -70,7 +73,7 @@ export default function JobsClient() {
           </p>
         </div>
         <Link
-          href="/admin/jobs/new"
+          href="/navitecs-control-admin/jobs/new"
           className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-xl text-sm hover:opacity-90 transition-opacity"
         >
           <Plus size={16} />
@@ -89,7 +92,7 @@ export default function JobsClient() {
           <Briefcase className="mx-auto text-gray-600 mb-4" size={40} />
           <p className="text-gray-400 mb-4">No job postings yet</p>
           <Link
-            href="/admin/jobs/new"
+            href="/navitecs-control-admin/jobs/new"
             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#00AEEF] to-[#00FF9C] text-black font-semibold rounded-lg text-sm"
           >
             <Plus size={14} />
@@ -138,6 +141,11 @@ export default function JobsClient() {
                         Inactive
                       </span>
                     )}
+                    {job.isGeneral && (
+                      <span className="px-2 py-0.5 text-xs bg-amber-500/15 text-amber-400 rounded-full border border-amber-500/25">
+                        General Application
+                      </span>
+                    )}
                   </div>
                   <p className="text-sm text-gray-400 mb-2 line-clamp-2">
                     {job.description}
@@ -168,15 +176,14 @@ export default function JobsClient() {
                     )}
                   </button>
                   <Link
-                    href={`/admin/jobs/${job.id}/edit`}
+                    href={`/navitecs-control-admin/jobs/${job.id}/edit`}
                     className="p-2 rounded-lg hover:bg-white/5 transition-colors text-gray-400 hover:text-[#00AEEF]"
                   >
                     <Pencil size={16} />
                   </Link>
                   <button
-                    onClick={() => deleteJob(job.id)}
-                    disabled={deletingId === job.id}
-                    className="p-2 rounded-lg hover:bg-red-500/10 transition-colors text-gray-400 hover:text-red-400 disabled:opacity-50"
+                    onClick={() => setPendingDelete({ id: job.id, title: job.title })}
+                    className="p-2 rounded-lg hover:bg-red-500/10 transition-colors text-gray-400 hover:text-red-400"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -185,6 +192,15 @@ export default function JobsClient() {
             </div>
           ))}
         </div>
+      )}
+
+      {pendingDelete && (
+        <DeleteModal
+          itemName={pendingDelete.title}
+          onConfirm={() => confirmDelete(pendingDelete.id, pendingDelete.title)}
+          onClose={() => setPendingDelete(null)}
+          actionHint={`delete_job:${pendingDelete.id}`}
+        />
       )}
     </div>
   );

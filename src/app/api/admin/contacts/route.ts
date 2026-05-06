@@ -1,8 +1,46 @@
-import { NextResponse } from "next/server";
-import { getContacts } from "@/lib/data";
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { requireAdmin } from "@/lib/proxy";
+import { tzStartOfDay, tzEndOfDay } from "@/lib/dateUtils";
 
 // GET /api/admin/contacts
-export async function GET() {
-  const contacts = await getContacts();
+// Query params: email, name, projectType, service, dateFrom, dateTo
+export async function GET(request: NextRequest) {
+  const deny = await requireAdmin();
+  if (deny) return deny;
+
+  const { searchParams } = request.nextUrl;
+  const email = searchParams.get("email");
+  const name = searchParams.get("name");
+  const projectType = searchParams.get("projectType");
+  const service = searchParams.get("service");
+  const dateFrom = searchParams.get("dateFrom");
+  const dateTo = searchParams.get("dateTo");
+
+  const contacts = await prisma.contact.findMany({
+    where: {
+      ...(email ? { email: { contains: email } } : {}),
+      ...(name ? { name: { contains: name } } : {}),
+      ...(projectType ? { projectType } : {}),
+      ...(service ? { service } : {}),
+      // projectServices is comma-separated; filter by substring match
+      ...(searchParams.get("projectServices")
+        ? { projectServices: { contains: searchParams.get("projectServices")! } }
+        : {}),
+      ...(dateFrom || dateTo
+        ? {
+            submittedAt: {
+              ...(dateFrom ? { gte: tzStartOfDay(dateFrom) } : {}),
+              ...(dateTo ? { lte: tzEndOfDay(dateTo) } : {}),
+            },
+          }
+        : {}),
+    },
+    include: {
+      companyContact: { select: { id: true, score: true, comments: true } },
+    },
+    orderBy: { submittedAt: "desc" },
+  });
+
   return NextResponse.json(contacts);
 }
