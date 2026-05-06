@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/proxy";
+import fs from "fs/promises";
+import path from "path";
+
+const IMAGE_DIR = path.resolve(process.cwd(), "uploads", "images");
+
+function extractImageFilename(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const match = url.match(/^\/api\/images\/([0-9a-f-]+\.webp)$/i);
+  return match ? match[1] : null;
+}
 
 const Schema = z.object({
   title: z.string().min(1).max(255),
@@ -40,6 +50,14 @@ export async function PUT(request: NextRequest) {
     : await prisma.aboutTeamFeature.create({
         data: parsed.data,
       });
+
+  // Delete old image file if it was replaced or cleared
+  if (existing && existing.imageUrl !== record.imageUrl) {
+    const oldFile = extractImageFilename(existing.imageUrl);
+    if (oldFile) {
+      await fs.unlink(path.join(IMAGE_DIR, oldFile)).catch(() => {});
+    }
+  }
 
   return NextResponse.json(record);
 }

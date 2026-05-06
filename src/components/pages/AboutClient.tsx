@@ -213,7 +213,7 @@ export default function AboutClient({ aboutFeature }: Props) {
                 ensure seamless project execution from concept to construction.
               </p>
               <p className="text-gray-400 text-lg">
-                With over 15 years of experience and 500+ completed projects, we
+                With over 10 years of experience and 300+ completed projects, we
                 have established ourselves as a trusted partner for complex
                 building developments across residential, commercial, and
                 infrastructure sectors.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Save, Loader2, ToggleLeft, ToggleRight } from "lucide-react";
 import ImageUploader from "./ImageUploader";
@@ -18,6 +18,14 @@ export default function AboutFeaturedClient() {
     imageUrl: "",
     enabled: true,
   });
+  const pendingFile = useRef<File | null>(null);
+
+  function handlePendingFile(_blobUrl: string, file: File) {
+    pendingFile.current = file;
+  }
+  function handleClearPending() {
+    pendingFile.current = null;
+  }
 
   useEffect(() => {
     fetch("/api/admin/about-featured")
@@ -46,10 +54,31 @@ export default function AboutFeaturedClient() {
     e.preventDefault();
     setSaving(true);
 
+    const payload = { ...form };
+
+    // Upload pending image if there is one
+    if (pendingFile.current) {
+      const fd = new FormData();
+      fd.append("image", pendingFile.current);
+      const uploadRes = await fetch("/api/admin/images", {
+        method: "POST",
+        body: fd,
+      });
+      const uploadData = await uploadRes.json().catch(() => ({}));
+      if (!uploadRes.ok) {
+        toast.error(uploadData.error ?? "Image upload failed");
+        setSaving(false);
+        return;
+      }
+      payload.imageUrl = uploadData.url as string;
+      if (form.imageUrl.startsWith("blob:")) URL.revokeObjectURL(form.imageUrl);
+      pendingFile.current = null;
+    }
+
     const res = await fetch("/api/admin/about-featured", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(payload),
     });
 
     if (res.ok) {
@@ -104,6 +133,9 @@ export default function AboutFeaturedClient() {
         <ImageUploader
           value={form.imageUrl}
           onChange={(url) => setForm((prev) => ({ ...prev, imageUrl: url }))}
+          deferred
+          onPendingFile={handlePendingFile}
+          onClearPending={handleClearPending}
           label="Featured Image"
           hint="This image will be shown without any border or box — edit it creatively before uploading"
         />
@@ -115,7 +147,6 @@ export default function AboutFeaturedClient() {
           <input
             id="title"
             name="title"
-            required
             value={form.title}
             onChange={handleChange}
             placeholder="e.g. Our Team"
@@ -133,7 +164,6 @@ export default function AboutFeaturedClient() {
           <textarea
             id="text"
             name="text"
-            required
             value={form.text}
             onChange={handleChange}
             rows={6}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -29,6 +29,14 @@ export default function TeamFormClient({ memberId }: Props) {
     featured: false,
     active: true,
   });
+  const pendingFile = useRef<File | null>(null);
+
+  function handlePendingFile(_blobUrl: string, file: File) {
+    pendingFile.current = file;
+  }
+  function handleClearPending() {
+    pendingFile.current = null;
+  }
 
   useEffect(() => {
     if (!memberId) return;
@@ -63,13 +71,31 @@ export default function TeamFormClient({ memberId }: Props) {
     setError("");
     setSaving(true);
 
+    const payload = { ...form };
+
+    // Upload pending image if there is one
+    if (pendingFile.current) {
+      const fd = new FormData();
+      fd.append("image", pendingFile.current);
+      const uploadRes = await fetch("/api/admin/images", { method: "POST", body: fd });
+      const uploadData = await uploadRes.json().catch(() => ({}));
+      if (!uploadRes.ok) {
+        setError(uploadData.error ?? "Image upload failed");
+        setSaving(false);
+        return;
+      }
+      payload.imageUrl = uploadData.url as string;
+      if (form.imageUrl.startsWith("blob:")) URL.revokeObjectURL(form.imageUrl);
+      pendingFile.current = null;
+    }
+
     const url = isEdit ? `/api/admin/team/${memberId}` : "/api/admin/team";
     const method = isEdit ? "PUT" : "POST";
 
     const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(payload),
     });
 
     if (res.ok) {
@@ -120,6 +146,9 @@ export default function TeamFormClient({ memberId }: Props) {
         <ImageUploader
           value={form.imageUrl}
           onChange={(url) => setForm((prev) => ({ ...prev, imageUrl: url }))}
+          deferred
+          onPendingFile={handlePendingFile}
+          onClearPending={handleClearPending}
           label="Photo"
           hint="Square photo works best (will be displayed as a circle)"
         />

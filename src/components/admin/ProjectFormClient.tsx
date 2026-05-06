@@ -225,8 +225,8 @@ export default function ProjectFormClient({ projectId }: Props) {
       seoDescription: form.seoDescription,
     };
 
-    // ── For new projects: upload all pending images now, then replace blob URLs ──
-    if (!isEdit && pendingFiles.current.size > 0) {
+    // ── Upload all pending images now, then replace blob URLs ──
+    if (pendingFiles.current.size > 0) {
       const urlReplacements = new Map<string, string>();
 
       for (const [blobUrl, file] of pendingFiles.current.entries()) {
@@ -401,7 +401,7 @@ export default function ProjectFormClient({ projectId }: Props) {
             hint="Used as the hero image on the project page and thumbnail in the listing."
             value={form.featuredImage}
             onChange={(url) => setForm((p) => ({ ...p, featuredImage: url }))}
-            deferred={!isEdit}
+            deferred
             onPendingFile={handlePendingFile}
             onClearPending={handleClearPending}
           />
@@ -504,7 +504,7 @@ export default function ProjectFormClient({ projectId }: Props) {
           <BlockEditor
             blocks={form.contentBlocks}
             onChange={(blocks) => setForm((prev) => ({ ...prev, contentBlocks: blocks }))}
-            deferred={!isEdit}
+            deferred
             onPendingFile={handlePendingFile}
             onClearPending={handleClearPending}
           />
@@ -520,7 +520,7 @@ export default function ProjectFormClient({ projectId }: Props) {
           </div>
           <div>
             <label htmlFor="seoDescription" className={labelClass}>SEO Description</label>
-            <textarea id="seoDescription" rows={3} placeholder={form.description.slice(0, 160) || "Project description…"} className={`${inputClass} resize-none`} {...field("seoDescription")} />
+            <textarea id="seoDescription" rows={3} placeholder={(form.description ?? "").slice(0, 160) || "Project description…"} className={`${inputClass} resize-none`} {...field("seoDescription")} />
             <p className="text-xs text-gray-600 mt-1">Leave empty to use the short description (first 160 chars).</p>
           </div>
         </div>
