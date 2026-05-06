@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/proxy";
+import fs from "fs/promises";
+import path from "path";
+
+const IMAGE_DIR = path.resolve(process.cwd(), "uploads", "images");
+
+function extractImageFilename(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const match = url.match(/^\/api\/images\/([0-9a-f-]+\.webp)$/i);
+  return match ? match[1] : null;
+}
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -38,10 +48,24 @@ export async function PUT(request: NextRequest, { params }: Params) {
   }
 
   try {
+    const oldMember = await prisma.teamMember.findUnique({
+      where: { id },
+      select: { imageUrl: true },
+    });
+
     const member = await prisma.teamMember.update({
       where: { id },
       data: parsed.data,
     });
+
+    // Delete old image file if it was replaced or cleared
+    if (oldMember && oldMember.imageUrl !== member.imageUrl) {
+      const oldFile = extractImageFilename(oldMember.imageUrl);
+      if (oldFile) {
+        await fs.unlink(path.join(IMAGE_DIR, oldFile)).catch(() => {});
+      }
+    }
+
     return NextResponse.json(member);
   } catch {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -56,7 +80,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   const { id } = await params;
   const member = await prisma.teamMember.findUnique({
     where: { id },
-    select: { order: true },
+    select: { order: true, imageUrl: true },
   });
   if (!member) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
@@ -67,6 +91,12 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
       data: { order: { decrement: 1 } },
     }),
   ]);
+
+  // Delete image file from disk
+  const filename = extractImageFilename(member.imageUrl);
+  if (filename) {
+    await fs.unlink(path.join(IMAGE_DIR, filename)).catch(() => {});
+  }
 
   return NextResponse.json({ ok: true });
 }

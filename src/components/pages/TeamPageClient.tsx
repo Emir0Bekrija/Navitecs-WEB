@@ -41,7 +41,7 @@ export default function TeamPageClient({ members }: Props) {
       </section>
 
       {/* Team grid */}
-      <section className="">
+      <section className="pb-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           {members.length === 0 ? (
             <div className="text-center py-20">
