@@ -21,6 +21,7 @@ const nextConfig: NextConfig = {
     "@prisma/client",
     "bcryptjs",
     "geoip-lite",
+    "mysql2",
   ],
   async headers() {
     return [
