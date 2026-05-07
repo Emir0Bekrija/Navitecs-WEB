@@ -1,6 +1,6 @@
 node_modules/
-.next/
 .idea/
 .env.local
 .env
-/src/generated/prisma
+src.zip
+.next/

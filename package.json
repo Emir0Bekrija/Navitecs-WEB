@@ -2,11 +2,10 @@
   "name": "@figma/my-make-file",
   "private": true,
   "version": "0.0.1",
-  "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
-    "start": "node server.cjs",
+    "build": "next build",
+    "start": "NODE_ENV=production node server.js",
     "lint": "next lint",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
